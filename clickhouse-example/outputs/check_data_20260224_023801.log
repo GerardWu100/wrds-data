@@ -1,0 +1,13 @@
+check_data run: 2026-02-24 02:38:01 UTC
+data_dir: /Users/gwh/projects/one-time-projects/to-clickhouse/non-crypto/data
+============================================================
+
+
+BNS_full_1min_adjsplitdiv.txt  —  1 issue(s) found:
+  line 1494520: empty 'timestamp' field (column 1)
+ER_U24_1min.txt  —  OK
+HYPE_full_1min.txt  —  OK
+SNT_full_1min.txt  —  OK
+
+============================================================
+DONE — 1 issue(s) found across all files.

@@ -1,0 +1,11 @@
+[project]
+name = "wrds-data"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "wrds>=3.5.0",
+    "pyarrow>=15.0",
+    "clickhouse-connect>=0.15.1",
+]

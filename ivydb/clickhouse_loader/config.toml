@@ -1,0 +1,103 @@
+# IvyDB ClickHouse loader configuration.
+#
+# Workflow
+# --------
+# 1. Edit this file for the batch you want to run.
+# 2. uv run python -m ivydb.clickhouse_loader create-tables
+# 3. Inspect the empty tables in ClickHouse.
+# 4. uv run python -m ivydb.clickhouse_loader load
+#
+# Only one table family should be enabled per batch. Use enabled = false on the
+# other sections, and set years or tables to the exact slice you want.
+#
+# Batch 1 example — reference/link tables only:
+#   [tables.option_prices] enabled = false
+#   [tables.underlying_prices] enabled = false
+#   [tables.static_reference] enabled = true
+#
+# Batch 2 example — underlying stock prices (all years -> one secprd table):
+#   [tables.option_prices] enabled = false
+#   [tables.static_reference] enabled = false
+#   [tables.underlying_prices] enabled = true
+#
+# Batch 3 example — option prices for one 5-year slice:
+#   [tables.static_reference] enabled = false
+#   [tables.underlying_prices] enabled = false
+#   [tables.option_prices] enabled = true
+#   years = [1996, 1997, 1998, 1999, 2000]
+
+[clickhouse]
+# ClickHouse host name or URL. Override with IVYDB_CLICKHOUSE_HOST.
+host = "localhost"
+# ClickHouse HTTP interface port. Override with IVYDB_CLICKHOUSE_PORT.
+port = 8123
+# ClickHouse username. Override with IVYDB_CLICKHOUSE_USERNAME.
+username = "ivydb_user"
+# ClickHouse password. Keep this blank here; set IVYDB_CLICKHOUSE_PASSWORD in env.
+password = ""
+# Whether to use HTTPS/TLS. Override with IVYDB_CLICKHOUSE_SECURE.
+secure = false
+# Target ClickHouse database. Override with IVYDB_CLICKHOUSE_DATABASE.
+database = "ivydb"
+
+[loader]
+# Skip WRDS source tables already marked complete in the local audit log.
+resume = true
+# Local JSON-lines audit file for resume checks.
+audit_log_path = "logs/ivydb_load_audit.jsonl"
+# Local text log for loader progress. Use "" to disable file logging.
+run_log_path = "logs/ivydb_loader.log"
+
+[tables.option_prices]
+# Set false to ignore option price years in this run.
+enabled = false
+# WRDS PostgreSQL library/schema for OptionMetrics IvyDB US.
+source_library = "optionm_all"
+# Source table prefix. The loader combines this with each year, for example opprcd2024.
+source_prefix = "opprcd"
+# Option price years to create and load in this run.
+years = [
+  1996, 1997, 1998, 1999, 2000,
+  2001, 2002, 2003, 2004, 2005,
+  2006, 2007, 2008, 2009, 2010,
+  2011, 2012, 2013, 2014, 2015,
+  2016, 2017, 2018, 2019, 2020,
+  2021, 2022, 2023, 2024, 2025,
+]
+# ClickHouse table name template for separate yearly option-price targets.
+target_template = "opprcd{year}"
+
+[tables.underlying_prices]
+# Set false to ignore underlying price years in this run.
+enabled = false
+# WRDS PostgreSQL library/schema for OptionMetrics IvyDB US.
+source_library = "optionm_all"
+# Source table prefix. The loader combines this with each year, for example secprd2024.
+source_prefix = "secprd"
+# Underlying security price years to load into the consolidated ClickHouse table.
+years = [
+  1996, 1997, 1998, 1999, 2000,
+  2001, 2002, 2003, 2004, 2005,
+  2006, 2007, 2008, 2009, 2010,
+  2011, 2012, 2013, 2014, 2015,
+  2016, 2017, 2018, 2019, 2020,
+  2021, 2022, 2023, 2024, 2025,
+]
+# Single ClickHouse table that receives all selected secprdYYYY rows.
+target_table = "secprd"
+# Added ClickHouse column identifying which yearly WRDS source table produced each row.
+source_year_column = "source_year"
+
+[tables.static_reference]
+# Set false to ignore static/reference tables in this run.
+enabled = true
+# Static/reference tables to load. Use either table names or explicit mappings.
+# Allowed table-name shortcuts: securd, secnmd, exchgd, distrd, opinfd, opcrsphist.
+tables = [
+  "securd",
+  "secnmd",
+  "exchgd",
+  "distrd",
+  "opinfd",
+  "opcrsphist",
+]

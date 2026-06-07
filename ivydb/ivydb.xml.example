@@ -1,0 +1,13 @@
+<clickhouse>
+    <users>
+        <ivydb_user>
+            <password>xxxxx</password>
+            <profile>default</profile>
+            <quota>default</quota>
+            <default_database>ivydb</default_database>
+            <grants>
+                <query>GRANT SELECT, INSERT, CREATE TABLE, ALTER TABLE, TRUNCATE, DROP TABLE ON ivydb.*</query>
+            </grants>
+        </ivydb_user>
+    </users>
+</clickhouse>

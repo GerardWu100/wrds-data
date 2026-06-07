@@ -1,0 +1,16 @@
+[clickhouse]
+host = "https://your-clickhouse-host.example/"
+port = 443
+username = "your_username"
+password = "your_password"
+secure = true
+database = "your_database"
+table = "your_table"
+
+[loader]
+data_dir = "data"
+batch_size = 50000
+clean_start = false
+market_timezone = "America/New_York"
+utc_symbols = []
+error_export_path = "outputs/import_errors.log"

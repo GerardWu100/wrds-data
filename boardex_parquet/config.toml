@@ -1,0 +1,126 @@
+# BoardEx OSINT data downloader -- config.toml
+#
+# This file controls which WRDS libraries and tables are downloaded by
+# boardex_parquet/download_to_parquet.py.
+#
+# Selection model:
+# - Each library block can be enabled or disabled.
+# - When download_all_tables = false, only tables listed in enabled_tables are
+#   selected. The shipped default uses this explicit allowlist model so the
+#   selected bundle stays pinned even if WRDS later adds more live tables.
+# - When download_all_tables = true, every live table in that library is
+#   selected by default unless it appears in disabled_tables.
+#
+# The CLI defaults to downloading every selected table in this config:
+#
+#     uv run python -m boardex_parquet
+#
+# or:
+#
+#     uv run python boardex_parquet/cli.py
+
+[loader]
+# Rows fetched from WRDS per chunk from one streaming SELECT query.
+# Lower this to 10_000 if very wide text tables put pressure on RAM or if the
+# remote connection becomes unstable.
+batch_size = 100000
+
+# Where to write .parquet files. Relative to the boardex_parquet/ folder.
+# Each file is named <library>__<table>.parquet
+output_dir = "outputs"
+
+# How many rows to write as a sample CSV per table (0 = skip CSV export).
+# The full-export default writes Parquet only, so previews stay off unless you
+# explicitly opt back in.
+sample_csv_rows = 0
+
+# --------------------------------------------------------------------------
+# BoardEx North America
+#
+# Default behavior in this library: download only the named 26-table bundle.
+# --------------------------------------------------------------------------
+[libraries.boardex_na]
+enabled = true
+download_all_tables = false
+
+enabled_tables = [
+    "na_board_characteristics",
+    "na_board_dir_announcements",
+    "na_board_dir_committees",
+    "na_board_education_assoc",
+    "na_board_listed_assoc",
+    "na_board_nfp_assoc",
+    "na_board_other_assoc",
+    "na_board_unlisted_assoc",
+    "na_company_profile_advisors",
+    "na_company_profile_details",
+    "na_company_profile_market_cap",
+    "na_company_profile_sr_mgrs",
+    "na_company_profile_stocks",
+    "na_dir_characteristics",
+    "na_dir_profile_achievements",
+    "na_dir_profile_details",
+    "na_dir_profile_education",
+    "na_dir_profile_emp",
+    "na_dir_profile_other_activ",
+    "na_wrds_company_dir_names",
+    "na_wrds_company_names",
+    "na_wrds_company_networks",
+    "na_wrds_company_profile",
+    "na_wrds_company_region",
+    "na_wrds_org_composition",
+    "na_wrds_org_summary",
+]
+disabled_tables = []
+
+# --------------------------------------------------------------------------
+# BoardEx <-> Capital IQ links
+# --------------------------------------------------------------------------
+[libraries.wrdsapps_plink_boardex_ciq]
+enabled = true
+download_all_tables = false
+enabled_tables = [
+    "boardex_ciq",
+    "boardex_ciq_link",
+]
+disabled_tables = []
+
+# --------------------------------------------------------------------------
+# Capital IQ People Intelligence
+#
+# Default behavior in this library: download only the named 7-table bundle.
+# `wrds_professional` remains enabled in the shipped default because the user
+# wanted the broader people-intelligence panel.
+# --------------------------------------------------------------------------
+[libraries.ciq_pplintel]
+enabled = true
+download_all_tables = false
+
+enabled_tables = [
+    "ciqperson",
+    "ciqpersonbiography",
+    "ciqprofessional",
+    "ciqprofessionalcoverage",
+    "ciqprofunction",
+    "ciqprotoprofunction",
+    "wrds_professional",
+]
+disabled_tables = []
+
+# --------------------------------------------------------------------------
+# Optional libraries kept disabled by default
+# --------------------------------------------------------------------------
+[libraries.wrdsapps_link_crsp_comp_bdx]
+enabled = false
+download_all_tables = true
+disabled_tables = []
+
+[libraries.wrdsapps_plink_exec_boardex]
+enabled = false
+download_all_tables = true
+disabled_tables = []
+
+[libraries.wrdsapps_plink_exec_ciq]
+enabled = false
+download_all_tables = true
+disabled_tables = []

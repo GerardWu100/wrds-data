@@ -1,0 +1,27 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+.DS_Store
+# Virtual environments
+.venv
+
+# Data exports
+*.csv
+!docs/Wharton Research Data Services.csv
+!docs/wrds_accessible_datasets_with_doc_urls_and_simple_descriptions.csv
+!outputs/*.csv
+*.parquet
+*.parquet.tmp
+boardex_parquet/outputs/
+*.DS_Store
+
+# Local credentials (never commit).
+.pgpass
+clickhouse-example/config.toml
+ivydb/.env
+ivydb/ivydb.xml

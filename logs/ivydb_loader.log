@@ -1,0 +1,119 @@
+2026-05-18 19:17:56 UTC INFO ivydb.clickhouse_loader.cli: Writing run log to /home/gh/mystuff/projects/one-time-projects/wrds-data/logs/ivydb_loader.log
+2026-05-19 15:37:51 UTC INFO ivydb.clickhouse_loader.cli: Writing run log to /Users/gwh/projects/one-time-projects/wrds-data/logs/ivydb_loader.log
+2026-05-19 15:37:51 UTC INFO ivydb.clickhouse_loader.cli: Writing run log to /Users/gwh/projects/one-time-projects/wrds-data/logs/ivydb_loader.log
+2026-05-22 14:55:17 UTC INFO ivydb.clickhouse_loader.cli: Writing run log to /Users/gwh/projects/one-time-projects/wrds-data/logs/ivydb_loader.log
+2026-05-22 14:55:17 UTC INFO ivydb.clickhouse_loader.cli: Writing run log to /Users/gwh/projects/one-time-projects/wrds-data/logs/ivydb_loader.log
+2026-05-22 14:55:18 UTC INFO ivydb.clickhouse_loader.cli: Writing run log to /Users/gwh/projects/one-time-projects/wrds-data/logs/ivydb_loader.log
+2026-05-22 15:07:38 UTC INFO ivydb.clickhouse_loader.cli: Writing run log to /Users/gwh/projects/one-time-projects/wrds-data/logs/ivydb_loader.log
+2026-05-22 15:07:38 UTC WARNING urllib3.connectionpool: Retrying (Retry(total=0, connect=None, read=None, redirect=0, status=None)) after connection broken by 'NewConnectionError("HTTPConnection(host='localhost', port=8123): Failed to establish a new connection: [Errno 61] Connection refused")': /?query_id=11dabb80-c60e-488d-a318-143992271fcb
+2026-05-22 15:07:38 UTC WARNING clickhouse_connect.driver.httpclient: Unexpected Http Driver Exception
+2026-06-05 15:39:42 UTC INFO ivydb.clickhouse_loader.cli: Writing run log to /home/ai4000/projects/one-time-projects/wrds-data/logs/ivydb_loader.log
+2026-06-05 15:43:27 UTC INFO ivydb.clickhouse_loader.cli: Writing run log to /home/ai4000/projects/one-time-projects/wrds-data/logs/ivydb_loader.log
+2026-06-05 15:43:27 UTC INFO ivydb.clickhouse_loader.cli: Command=load target_database=ivydb tables=6
+2026-06-05 15:45:32 UTC INFO ivydb.clickhouse_loader.cli: Writing run log to /home/ai4000/projects/one-time-projects/wrds-data/logs/ivydb_loader.log
+2026-06-05 15:45:32 UTC INFO ivydb.clickhouse_loader.cli: Command=load target_database=ivydb tables=6
+2026-06-05 15:46:05 UTC INFO ivydb.clickhouse_loader.cli: Writing run log to /home/ai4000/projects/one-time-projects/wrds-data/logs/ivydb_loader.log
+2026-06-05 15:46:05 UTC INFO ivydb.clickhouse_loader.cli: Command=load target_database=ivydb tables=6
+2026-06-05 15:46:35 UTC INFO ivydb.clickhouse_loader.cli: Writing run log to /home/ai4000/projects/one-time-projects/wrds-data/logs/ivydb_loader.log
+2026-06-05 15:46:35 UTC INFO ivydb.clickhouse_loader.cli: Command=load target_database=ivydb tables=6
+2026-06-05 15:46:43 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Starting IvyDB load for 6 source table(s); local audit file: /home/ai4000/projects/one-time-projects/wrds-data/logs/ivydb_load_audit.jsonl
+2026-06-05 15:46:43 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loading optionm_all.securd -> securd
+2026-06-05 15:46:44 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 100,000 rows from optionm_all.securd
+2026-06-05 15:46:44 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 120,429 rows from optionm_all.securd
+2026-06-05 15:46:44 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Completed optionm_all.securd -> securd with 120,429 row(s)
+2026-06-05 15:46:44 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loading optionm_all.secnmd -> secnmd
+2026-06-05 15:46:45 UTC ERROR clickhouse_connect.driver.transform: Error serializing column `effect_date` into data type `Nullable(Date32)`
+Traceback (most recent call last):
+  File "/home/ai4000/projects/one-time-projects/wrds-data/.venv/lib/python3.13/site-packages/clickhouse_connect/driver/transform.py", line 114, in chunk_gen
+    col_type.write_column(data, output, context)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ai4000/projects/one-time-projects/wrds-data/.venv/lib/python3.13/site-packages/clickhouse_connect/datatypes/base.py", line 216, in write_column
+    self.write_column_data(column, dest, ctx)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "/home/ai4000/projects/one-time-projects/wrds-data/.venv/lib/python3.13/site-packages/clickhouse_connect/datatypes/base.py", line 231, in write_column_data
+    self._write_column_binary(column, dest, ctx)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "/home/ai4000/projects/one-time-projects/wrds-data/.venv/lib/python3.13/site-packages/clickhouse_connect/datatypes/temporal.py", line 58, in _write_column_binary
+    column = [0 if x is None else (x - esd).days for x in column]
+                                   ~~^~~~~
+TypeError: unsupported operand type(s) for -: 'str' and 'datetime.date'
+2026-06-05 15:46:45 UTC ERROR ivydb.clickhouse_loader.load_to_clickhouse: Failed optionm_all.secnmd -> secnmd after 0 loaded row(s)
+Traceback (most recent call last):
+  File "/home/ai4000/projects/one-time-projects/wrds-data/ivydb/clickhouse_loader/load_to_clickhouse.py", line 127, in _load_one_table_direct
+    clickhouse_client.insert_df(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        table=table.target_table,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^
+        df=insert_batch,
+        ^^^^^^^^^^^^^^^^
+        database=config.clickhouse.database,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/ai4000/projects/one-time-projects/wrds-data/.venv/lib/python3.13/site-packages/clickhouse_connect/driver/client.py", line 1013, in insert_df
+    return self.insert(table,
+           ~~~~~~~~~~~^^^^^^^
+                       df,
+                       ^^^
+    ...<5 lines>...
+                       transport_settings=transport_settings,
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                       context=context)
+                       ^^^^^^^^^^^^^^^^
+  File "/home/ai4000/projects/one-time-projects/wrds-data/.venv/lib/python3.13/site-packages/clickhouse_connect/driver/client.py", line 978, in insert
+    return self.data_insert(context)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/ai4000/projects/one-time-projects/wrds-data/.venv/lib/python3.13/site-packages/clickhouse_connect/driver/httpclient.py", line 347, in data_insert
+    response = self._raw_request(block_gen, params, headers, error_handler=error_handler, server_wait=False)
+  File "/home/ai4000/projects/one-time-projects/wrds-data/.venv/lib/python3.13/site-packages/clickhouse_connect/driver/httpclient.py", line 569, in _raw_request
+    error_handler(response)
+    ~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/ai4000/projects/one-time-projects/wrds-data/.venv/lib/python3.13/site-packages/clickhouse_connect/driver/httpclient.py", line 331, in error_handler
+    raise ex
+  File "/home/ai4000/projects/one-time-projects/wrds-data/.venv/lib/python3.13/site-packages/clickhouse_connect/driver/transform.py", line 114, in chunk_gen
+    col_type.write_column(data, output, context)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ai4000/projects/one-time-projects/wrds-data/.venv/lib/python3.13/site-packages/clickhouse_connect/datatypes/base.py", line 216, in write_column
+    self.write_column_data(column, dest, ctx)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "/home/ai4000/projects/one-time-projects/wrds-data/.venv/lib/python3.13/site-packages/clickhouse_connect/datatypes/base.py", line 231, in write_column_data
+    self._write_column_binary(column, dest, ctx)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "/home/ai4000/projects/one-time-projects/wrds-data/.venv/lib/python3.13/site-packages/clickhouse_connect/datatypes/temporal.py", line 58, in _write_column_binary
+    column = [0 if x is None else (x - esd).days for x in column]
+                                   ~~^~~~~
+TypeError: unsupported operand type(s) for -: 'str' and 'datetime.date'
+2026-06-05 15:55:36 UTC INFO ivydb.clickhouse_loader.cli: Writing run log to /home/ai4000/projects/one-time-projects/wrds-data/logs/ivydb_loader.log
+2026-06-05 15:55:54 UTC INFO ivydb.clickhouse_loader.cli: Writing run log to /home/ai4000/projects/one-time-projects/wrds-data/logs/ivydb_loader.log
+2026-06-05 15:55:59 UTC INFO ivydb.clickhouse_loader.cli: Writing run log to /home/ai4000/projects/one-time-projects/wrds-data/logs/ivydb_loader.log
+2026-06-06 20:04:17 UTC INFO ivydb.clickhouse_loader.cli: Writing run log to /home/ai4000/projects/one-time-projects/wrds-data/logs/ivydb_loader.log
+2026-06-06 20:04:17 UTC INFO ivydb.clickhouse_loader.cli: Command=load target_database=ivydb tables=6
+2026-06-06 20:04:19 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Starting IvyDB load for 6 source table(s); local audit file: /home/ai4000/projects/one-time-projects/wrds-data/logs/ivydb_load_audit.jsonl
+2026-06-06 20:04:19 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Skipping optionm_all.securd -> securd because the local audit file marks it complete
+2026-06-06 20:04:19 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loading optionm_all.secnmd -> secnmd
+2026-06-06 20:04:20 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 100,000 rows from optionm_all.secnmd
+2026-06-06 20:04:21 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 200,000 rows from optionm_all.secnmd
+2026-06-06 20:04:21 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 272,255 rows from optionm_all.secnmd
+2026-06-06 20:04:21 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Completed optionm_all.secnmd -> secnmd with 272,255 row(s)
+2026-06-06 20:04:21 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loading optionm_all.exchgd -> exchgd
+2026-06-06 20:04:22 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 100,000 rows from optionm_all.exchgd
+2026-06-06 20:04:22 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 200,000 rows from optionm_all.exchgd
+2026-06-06 20:04:22 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 209,738 rows from optionm_all.exchgd
+2026-06-06 20:04:22 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Completed optionm_all.exchgd -> exchgd with 209,738 row(s)
+2026-06-06 20:04:22 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loading optionm_all.distrd -> distrd
+2026-06-06 20:04:27 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 100,000 rows from optionm_all.distrd
+2026-06-06 20:04:28 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 200,000 rows from optionm_all.distrd
+2026-06-06 20:04:29 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 300,000 rows from optionm_all.distrd
+2026-06-06 20:04:30 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 400,000 rows from optionm_all.distrd
+2026-06-06 20:04:31 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 500,000 rows from optionm_all.distrd
+2026-06-06 20:04:32 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 600,000 rows from optionm_all.distrd
+2026-06-06 20:04:33 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 700,000 rows from optionm_all.distrd
+2026-06-06 20:04:33 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 743,101 rows from optionm_all.distrd
+2026-06-06 20:04:33 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Completed optionm_all.distrd -> distrd with 743,101 row(s)
+2026-06-06 20:04:33 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loading optionm_all.opinfd -> opinfd
+2026-06-06 20:04:33 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 13,651 rows from optionm_all.opinfd
+2026-06-06 20:04:33 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Completed optionm_all.opinfd -> opinfd with 13,651 row(s)
+2026-06-06 20:04:33 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loading wrdsapps_link_crsp_optionm.opcrsphist -> opcrsphist
+2026-06-06 20:04:34 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 100,000 rows from wrdsapps_link_crsp_optionm.opcrsphist
+2026-06-06 20:04:34 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 121,773 rows from wrdsapps_link_crsp_optionm.opcrsphist
+2026-06-06 20:04:34 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Completed wrdsapps_link_crsp_optionm.opcrsphist -> opcrsphist with 121,773 row(s)

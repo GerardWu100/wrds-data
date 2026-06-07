@@ -1,0 +1,6 @@
+row_limit = 100
+libraries = [
+"contrib_global_factor","factset_common","ciq_pplintel","ciq_ratings"
+
+]
+

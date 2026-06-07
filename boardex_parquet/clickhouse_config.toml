@@ -1,0 +1,46 @@
+# BoardEx Parquet -> ClickHouse loader configuration.
+#
+# The loader creates one ClickHouse table per local Parquet pocket file.
+# Each target table is named exactly like the Parquet stem:
+#   boardex_na__na_dir_profile_emp.parquet -> boardex_na__na_dir_profile_emp
+
+[clickhouse]
+# ClickHouse host name or HTTP(S) URL. Examples:
+#   "localhost"
+#   "https://clickhouse.example.com"
+host = "localhost"
+
+# ClickHouse HTTP interface port. Common values: 8123 for local HTTP, 8443 or
+# 443 for HTTPS services.
+port = 8123
+
+# ClickHouse user name.
+username = "default"
+
+# ClickHouse password. Leave blank only for local servers that allow it.
+password = ""
+
+# Whether to use HTTPS/TLS when host is not already an http:// or https:// URL.
+secure = false
+
+# Target ClickHouse database. The loader can create it when create_database is true.
+database = "myclickhouse"
+
+[loader]
+# Directory containing <library>__<table>.parquet pocket files. Relative paths
+# are resolved from this config file's folder.
+parquet_dir = "outputs"
+
+# Rows per Arrow batch sent to ClickHouse. Increase for speed if memory is fine;
+# decrease if very wide text tables put pressure on RAM.
+insert_batch_rows = 100000
+
+# Create the target ClickHouse database if it does not already exist.
+create_database = true
+
+# Drop and rebuild existing target tables. The CLI --replace flag can turn this
+# on for a single run.
+replace = false
+
+# Skip a table when ClickHouse already has the same row count as the Parquet file.
+resume = true

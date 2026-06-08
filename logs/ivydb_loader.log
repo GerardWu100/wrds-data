@@ -897,3 +897,17 @@ ValueError: contract_size must contain whole non-negative values no greater than
 2026-06-08 16:02:20 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 1,000,000 rows from optionm_all.opprcd1996
 2026-06-08 16:02:21 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 1,100,000 rows from optionm_all.opprcd1996
 2026-06-08 16:02:23 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 1,200,000 rows from optionm_all.opprcd1996
+2026-06-08 16:02:25 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 1,300,000 rows from optionm_all.opprcd1996
+2026-06-08 16:02:26 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 1,400,000 rows from optionm_all.opprcd1996
+2026-06-08 16:02:28 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 1,500,000 rows from optionm_all.opprcd1996
+2026-06-08 16:02:30 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 1,600,000 rows from optionm_all.opprcd1996
+2026-06-08 16:02:31 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 1,700,000 rows from optionm_all.opprcd1996
+2026-06-08 16:02:33 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 1,800,000 rows from optionm_all.opprcd1996
+2026-06-08 16:02:35 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 1,900,000 rows from optionm_all.opprcd1996
+2026-06-08 16:02:36 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 2,000,000 rows from optionm_all.opprcd1996
+2026-06-08 16:02:38 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 2,100,000 rows from optionm_all.opprcd1996
+2026-06-08 16:02:39 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 2,200,000 rows from optionm_all.opprcd1996
+2026-06-08 16:02:41 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 2,300,000 rows from optionm_all.opprcd1996
+2026-06-08 16:02:42 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 2,400,000 rows from optionm_all.opprcd1996
+2026-06-08 16:02:44 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 2,500,000 rows from optionm_all.opprcd1996
+2026-06-08 16:02:45 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 2,600,000 rows from optionm_all.opprcd1996

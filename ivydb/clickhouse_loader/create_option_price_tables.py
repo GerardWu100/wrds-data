@@ -22,6 +22,8 @@ from ivydb.clickhouse_loader.config import AppConfig, default_config
 # - volume / open_interest are per-contract daily counts (observed max ~52k);
 #   UInt32 is the correct width and UInt64 only wasted space.
 # - am_settlement is a 0/1 flag, so UInt8 is sufficient.
+# - contract_size is Int32 rather than UInt32 because WRDS uses -99 as an
+#   OptionMetrics missing-value sentinel in historical opprcd rows.
 # - optionid increases within the (secid, date) sort runs, so Delta before ZSTD
 #   shrinks it markedly (~0.44 -> ~0.13 MB on the sample) with no precision loss.
 # - forward_price is intentionally absent: it moved to the fwdprd file in manual
@@ -48,7 +50,7 @@ CREATE TABLE IF NOT EXISTS `{database}`.`{table}` (
     `optionid` Nullable(UInt64) CODEC(Delta, ZSTD(6)),
     `cfadj` Nullable(Float32) CODEC(ZSTD(6)),
     `am_settlement` Nullable(UInt8) CODEC(ZSTD(6)),
-    `contract_size` Nullable(UInt32) CODEC(ZSTD(6)),
+    `contract_size` Nullable(Int32) CODEC(ZSTD(6)),
     `ss_flag` Nullable(Enum8('0' = 1, '1' = 2, 'E' = 3)) CODEC(ZSTD(6)),
     `expiry_indicator` LowCardinality(Nullable(String)) CODEC(ZSTD(6)),
     `root` LowCardinality(Nullable(String)) CODEC(ZSTD(6)),

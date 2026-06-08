@@ -18,20 +18,35 @@ class UnsignedColumnRule:
     maximum: int
 
 
+@dataclass(frozen=True)
+class SignedColumnRule:
+    """Target signed-integer type for one semantically integral column."""
+
+    column_name: str
+    pandas_dtype: str
+    minimum: int
+    maximum: int
+
+
 UINT8_MAX = (2**8) - 1
+INT32_MIN = -(2**31)
+INT32_MAX = (2**31) - 1
 UINT32_MAX = (2**32) - 1
 UINT64_MAX = (2**64) - 1
 # Widths mirror the curated ClickHouse DDL so out-of-range values are rejected
 # at the chunk boundary instead of silently overflowing on insert. opprcd
 # volume/open_interest are per-contract daily counts (UInt32), am_settlement is
-# a 0/1 flag (UInt8), and optionid stays UInt64.
+# a 0/1 flag (UInt8), optionid stays UInt64, and contract_size is signed because
+# WRDS uses -99 as an OptionMetrics missing-value sentinel.
 OPTION_UNSIGNED_RULES = (
     UnsignedColumnRule("secid", "UInt32", UINT32_MAX),
     UnsignedColumnRule("volume", "UInt32", UINT32_MAX),
     UnsignedColumnRule("open_interest", "UInt32", UINT32_MAX),
     UnsignedColumnRule("optionid", "UInt64", UINT64_MAX),
     UnsignedColumnRule("am_settlement", "UInt8", UINT8_MAX),
-    UnsignedColumnRule("contract_size", "UInt32", UINT32_MAX),
+)
+OPTION_SIGNED_RULES = (
+    SignedColumnRule("contract_size", "Int32", INT32_MIN, INT32_MAX),
 )
 SECURITY_PRICE_UNSIGNED_RULES = (
     UnsignedColumnRule("secid", "UInt32", UINT32_MAX),
@@ -83,16 +98,21 @@ def normalize_batch_for_clickhouse(batch: pd.DataFrame, table: TablePlan) -> pd.
     if table.source_prefix == "opprcd":
         _validate_enum_columns(normalized, OPTION_ENUM_VALUES)
         rules = OPTION_UNSIGNED_RULES
+        signed_rules = OPTION_SIGNED_RULES
         date_columns = OPTION_DATE_COLUMNS
     elif table.source_prefix == "secprd":
         rules = SECURITY_PRICE_UNSIGNED_RULES
+        signed_rules = ()
         date_columns = SECURITY_PRICE_DATE_COLUMNS
     else:
         rules = REFERENCE_UNSIGNED_COLUMNS.get(table.source_table, ())
+        signed_rules = ()
         date_columns = REFERENCE_DATE_COLUMNS.get(table.source_table, ())
 
     for rule in rules:
         _cast_nullable_unsigned(normalized, rule)
+    for rule in signed_rules:
+        _cast_nullable_signed(normalized, rule)
     if table.source_prefix == "opprcd":
         for column_name in OPTION_BINARY_FLAG_COLUMNS:
             _validate_nullable_binary_flag(normalized, column_name)
@@ -148,6 +168,26 @@ def _cast_nullable_unsigned(dataframe: pd.DataFrame, rule: UnsignedColumnRule) -
         raise ValueError(
             f"{rule.column_name} must contain whole non-negative values "
             f"no greater than {rule.maximum}"
+        )
+    dataframe[rule.column_name] = dataframe[rule.column_name].astype(rule.pandas_dtype)
+
+
+def _cast_nullable_signed(dataframe: pd.DataFrame, rule: SignedColumnRule) -> None:
+    """Validate and cast one nullable signed identifier or count column in place."""
+
+    if rule.column_name not in dataframe.columns:
+        return
+
+    observed = dataframe[rule.column_name].dropna()
+    invalid = (
+        (observed < rule.minimum)
+        | (observed > rule.maximum)
+        | ((observed % 1) != 0)
+    )
+    if invalid.any():
+        raise ValueError(
+            f"{rule.column_name} must contain whole values between "
+            f"{rule.minimum} and {rule.maximum}"
         )
     dataframe[rule.column_name] = dataframe[rule.column_name].astype(rule.pandas_dtype)
 

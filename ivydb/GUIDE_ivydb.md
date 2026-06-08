@@ -56,6 +56,10 @@ process environment variables or local `ivydb/.env`; the checked-in
 with the reference batch enabled and the option-price and underlying-price
 batches disabled. For a different run, edit the enabled flags, year lists, or
 static table list before launching the loader.
+For option-price tables, `contract_size` is intentionally signed because WRDS
+uses `-99` as an OptionMetrics missing-value sentinel. Recreate any pre-existing
+empty `opprcdYYYY` table after this schema change so ClickHouse uses `Int32`
+instead of the older unsigned column.
 
 ## Part 2: File Reference
 

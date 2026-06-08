@@ -401,6 +401,7 @@ class IvydbClickhouseSchemaTests(unittest.TestCase):
         self.assertIn("`volume` Nullable(UInt32) CODEC(ZSTD(6))", fake_client.commands[0])
         self.assertIn("`open_interest` Nullable(UInt32) CODEC(ZSTD(6))", fake_client.commands[0])
         self.assertIn("`am_settlement` Nullable(UInt8) CODEC(ZSTD(6))", fake_client.commands[0])
+        self.assertIn("`contract_size` Nullable(Int32) CODEC(ZSTD(6))", fake_client.commands[0])
         self.assertIn("`optionid` Nullable(UInt64) CODEC(Delta, ZSTD(6))", fake_client.commands[0])
         self.assertIn("`impl_volatility` Nullable(Float32) CODEC(ZSTD(6))", fake_client.commands[0])
         self.assertIn("`strike_price` Nullable(Float32) CODEC(ZSTD(6))", fake_client.commands[0])
@@ -834,7 +835,7 @@ class IvydbClickhouseLoadTests(unittest.TestCase):
         mocked_stream.assert_called_once()
 
     def test_option_normalization_preserves_null_categories_and_casts_counts(self) -> None:
-        """Nullable categories remain missing while valid counts use unsigned storage."""
+        """Nullable categories remain missing while integer-like fields are cast."""
 
         import pandas as pd
 
@@ -862,6 +863,35 @@ class IvydbClickhouseLoadTests(unittest.TestCase):
         self.assertEqual(str(result["open_interest"].dtype), "UInt32")
         self.assertEqual(str(result["am_settlement"].dtype), "UInt8")
         self.assertEqual(str(result["optionid"].dtype), "UInt64")
+        self.assertEqual(str(result["contract_size"].dtype), "Int32")
+
+    def test_option_normalization_keeps_negative_contract_size_sentinel(self) -> None:
+        """WRDS ``-99`` contract-size sentinels should be stored as signed integers."""
+
+        import pandas as pd
+
+        from ivydb.clickhouse_loader.normalization import normalize_batch_for_clickhouse
+
+        result = normalize_batch_for_clickhouse(
+            pd.DataFrame({"contract_size": [-99.0, 100.0]}),
+            self.option_price_plan(),
+        )
+
+        self.assertEqual(str(result["contract_size"].dtype), "Int32")
+        self.assertEqual(result["contract_size"].tolist(), [-99, 100])
+
+    def test_option_normalization_still_rejects_negative_volume(self) -> None:
+        """The signed ``contract_size`` sentinel rule must not loosen volume checks."""
+
+        import pandas as pd
+
+        from ivydb.clickhouse_loader.normalization import normalize_batch_for_clickhouse
+
+        with self.assertRaisesRegex(ValueError, "volume.*whole non-negative"):
+            normalize_batch_for_clickhouse(
+                pd.DataFrame({"volume": [-99.0]}),
+                self.option_price_plan(),
+            )
 
     def test_option_normalization_converts_date_strings_to_python_dates(self) -> None:
         """ClickHouse Date32 columns should receive Python date objects, not strings."""

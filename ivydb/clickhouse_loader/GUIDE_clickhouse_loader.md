@@ -60,9 +60,10 @@ while keeping ~7 significant digits. Size figures use
 for the loader user, which lacks the `system.parts` grant. Integer choices:
 `volume` and `open_interest`
 are `UInt32` (per-contract daily counts, not `UInt64`), `am_settlement` is
-`UInt8` with an explicit 0/1 boundary check, and `optionid` adds a `Delta`
-codec because it increases within the sort runs. `secprd` floats use `Float32`
-for the same reason.
+`UInt8` with an explicit 0/1 boundary check, `contract_size` is `Int32` because
+WRDS uses `-99` as an OptionMetrics missing-value sentinel, and `optionid` adds
+a `Delta` codec because it increases within the sort runs. `secprd` floats use
+`Float32` for the same reason.
 Dropping the IV/Greeks columns entirely (≈ 19% of current) remains an
 available research decision but is not done by default.
 
@@ -140,6 +141,8 @@ table.
 - Validates and casts WRDS chunks before direct insertion.
 - Unsigned-column rules mirror the curated DDL widths (`UInt32` counts,
   `UInt8` `am_settlement`) so out-of-range values fail at the chunk boundary.
+- `opprcd.contract_size` uses a signed `Int32` rule so the WRDS `-99`
+  missing-value sentinel is preserved rather than rewritten to `NULL`.
 - Converts the curated IvyDB `Date32` columns from WRDS strings or date-like
   values into nullable Python `date` objects for `clickhouse-connect`.
 
@@ -222,3 +225,5 @@ See `ivydb/IVYDB_CLICKHOUSE_RUN_MANUAL.md` for batch-by-batch config examples.
 - 2026-06-07: Tightened `opprcd.am_settlement` normalization so the loader
   rejects values outside the documented 0/1 flag domain before ClickHouse
   insertion.
+- 2026-06-08: Changed `opprcd.contract_size` from `UInt32` to signed `Int32`
+  and updated normalization to preserve the WRDS `-99` missing-value sentinel.

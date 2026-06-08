@@ -50,7 +50,7 @@ run_log_path = "logs/ivydb_loader.log"
 
 [tables.option_prices]
 # Set false to ignore option price years in this run.
-enabled = false
+enabled = true
 # WRDS PostgreSQL library/schema for OptionMetrics IvyDB US.
 source_library = "optionm_all"
 # Source table prefix. The loader combines this with each year, for example opprcd2024.
@@ -58,18 +58,23 @@ source_prefix = "opprcd"
 # Option price years to create and load in this run.
 years = [
   1996, 1997, 1998, 1999, 2000,
-  2001, 2002, 2003, 2004, 2005,
-  2006, 2007, 2008, 2009, 2010,
-  2011, 2012, 2013, 2014, 2015,
-  2016, 2017, 2018, 2019, 2020,
-  2021, 2022, 2023, 2024, 2025,
 ]
+
+# All-years option price example:
+# years = [
+#   1996, 1997, 1998, 1999, 2000,
+#   2001, 2002, 2003, 2004, 2005,
+#   2006, 2007, 2008, 2009, 2010,
+#   2011, 2012, 2013, 2014, 2015,
+#   2016, 2017, 2018, 2019, 2020,
+#   2021, 2022, 2023, 2024, 2025,
+# ]
 # ClickHouse table name template for separate yearly option-price targets.
 target_template = "opprcd{year}"
 
 [tables.underlying_prices]
 # Set false to ignore underlying price years in this run.
-enabled = true
+enabled = false
 # WRDS PostgreSQL library/schema for OptionMetrics IvyDB US.
 source_library = "optionm_all"
 # Source table prefix. The loader combines this with each year, for example secprd2024.

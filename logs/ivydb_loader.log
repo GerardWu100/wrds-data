@@ -854,3 +854,28 @@ TypeError: unsupported operand type(s) for -: 'str' and 'datetime.date'
 2026-06-08 14:54:47 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 1,700,000 rows from optionm_all.secprd2025
 2026-06-08 14:54:48 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 1,735,302 rows from optionm_all.secprd2025
 2026-06-08 14:54:48 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Completed optionm_all.secprd2025 -> secprd with 1,735,302 row(s)
+2026-06-08 15:24:57 UTC INFO ivydb.clickhouse_loader.cli: Writing run log to /home/ai4000/projects/one-time-projects/wrds-data/logs/ivydb_loader.log
+2026-06-08 15:25:58 UTC INFO ivydb.clickhouse_loader.cli: Writing run log to /home/ai4000/projects/one-time-projects/wrds-data/logs/ivydb_loader.log
+2026-06-08 15:25:58 UTC INFO ivydb.clickhouse_loader.cli: Command=load target_database=ivydb tables=5
+2026-06-08 15:26:00 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Starting IvyDB load for 5 source table(s); local audit file: /home/ai4000/projects/one-time-projects/wrds-data/logs/ivydb_load_audit.jsonl
+2026-06-08 15:26:00 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loading optionm_all.opprcd1996 -> opprcd1996
+2026-06-08 15:28:25 UTC INFO ivydb.clickhouse_loader.cli: Writing run log to /home/ai4000/projects/one-time-projects/wrds-data/logs/ivydb_loader.log
+2026-06-08 15:28:25 UTC INFO ivydb.clickhouse_loader.cli: Command=load target_database=ivydb tables=5
+2026-06-08 15:28:26 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Starting IvyDB load for 5 source table(s); local audit file: /home/ai4000/projects/one-time-projects/wrds-data/logs/ivydb_load_audit.jsonl
+2026-06-08 15:28:26 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loading optionm_all.opprcd1996 -> opprcd1996
+2026-06-08 15:30:45 UTC INFO ivydb.clickhouse_loader.cli: Writing run log to /home/ai4000/projects/one-time-projects/wrds-data/logs/ivydb_loader.log
+2026-06-08 15:30:45 UTC INFO ivydb.clickhouse_loader.cli: Command=load target_database=ivydb tables=1
+2026-06-08 15:30:47 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Starting IvyDB load for 1 source table(s); local audit file: /home/ai4000/projects/one-time-projects/wrds-data/logs/ivydb_load_audit.jsonl
+2026-06-08 15:30:47 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loading optionm_all.opprcd1996 -> opprcd1996
+2026-06-08 15:32:05 UTC ERROR ivydb.clickhouse_loader.load_to_clickhouse: Failed optionm_all.opprcd1996 -> opprcd1996 after 0 loaded row(s)
+Traceback (most recent call last):
+  File "/home/ai4000/projects/one-time-projects/wrds-data/ivydb/clickhouse_loader/load_to_clickhouse.py", line 123, in _load_one_table_direct
+    normalized_chunk = normalize_batch_for_clickhouse(chunk, table)
+  File "/home/ai4000/projects/one-time-projects/wrds-data/ivydb/clickhouse_loader/normalization.py", line 95, in normalize_batch_for_clickhouse
+    _cast_nullable_unsigned(normalized, rule)
+    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/home/ai4000/projects/one-time-projects/wrds-data/ivydb/clickhouse_loader/normalization.py", line 148, in _cast_nullable_unsigned
+    raise ValueError(
+    ...<2 lines>...
+    )
+ValueError: contract_size must contain whole non-negative values no greater than 4294967295

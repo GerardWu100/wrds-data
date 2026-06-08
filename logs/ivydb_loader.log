@@ -880,3 +880,20 @@ Traceback (most recent call last):
     )
 ValueError: contract_size must contain whole non-negative values no greater than 4294967295
 2026-06-08 15:38:41 UTC INFO ivydb.clickhouse_loader.cli: Writing run log to /home/ai4000/projects/one-time-projects/wrds-data/logs/ivydb_loader.log
+2026-06-08 15:59:48 UTC INFO ivydb.clickhouse_loader.cli: Writing run log to /home/ai4000/projects/one-time-projects/wrds-data/logs/ivydb_loader.log
+2026-06-08 16:00:04 UTC INFO ivydb.clickhouse_loader.cli: Writing run log to /home/ai4000/projects/one-time-projects/wrds-data/logs/ivydb_loader.log
+2026-06-08 16:00:04 UTC INFO ivydb.clickhouse_loader.cli: Command=load target_database=ivydb tables=1
+2026-06-08 16:00:06 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Starting IvyDB load for 1 source table(s); local audit file: /home/ai4000/projects/one-time-projects/wrds-data/logs/ivydb_load_audit.jsonl
+2026-06-08 16:00:06 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loading optionm_all.opprcd1996 -> opprcd1996
+2026-06-08 16:02:05 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 100,000 rows from optionm_all.opprcd1996
+2026-06-08 16:02:06 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 200,000 rows from optionm_all.opprcd1996
+2026-06-08 16:02:08 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 300,000 rows from optionm_all.opprcd1996
+2026-06-08 16:02:09 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 400,000 rows from optionm_all.opprcd1996
+2026-06-08 16:02:11 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 500,000 rows from optionm_all.opprcd1996
+2026-06-08 16:02:13 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 600,000 rows from optionm_all.opprcd1996
+2026-06-08 16:02:14 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 700,000 rows from optionm_all.opprcd1996
+2026-06-08 16:02:16 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 800,000 rows from optionm_all.opprcd1996
+2026-06-08 16:02:18 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 900,000 rows from optionm_all.opprcd1996
+2026-06-08 16:02:20 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 1,000,000 rows from optionm_all.opprcd1996
+2026-06-08 16:02:21 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 1,100,000 rows from optionm_all.opprcd1996
+2026-06-08 16:02:23 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 1,200,000 rows from optionm_all.opprcd1996

@@ -879,3 +879,4 @@ Traceback (most recent call last):
     ...<2 lines>...
     )
 ValueError: contract_size must contain whole non-negative values no greater than 4294967295
+2026-06-08 15:38:41 UTC INFO ivydb.clickhouse_loader.cli: Writing run log to /home/ai4000/projects/one-time-projects/wrds-data/logs/ivydb_loader.log

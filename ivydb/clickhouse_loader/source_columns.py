@@ -13,24 +13,34 @@ same order as the curated ClickHouse table. The ClickHouse insert matches by
 column name, so order is not load-critical, but keeping the lists aligned with
 the DDL keeps the two contracts readable side by side.
 
-Notable selection decision
+Notable selection decisions
 ---------------------------
-``opprcd`` deliberately omits ``forward_price``. OptionMetrics moved forward
-price into the separate ``fwdprd`` file in manual version 5.0, and a live 2023
-sample showed the ``opprcd`` ``forward_price`` column is 0% populated. Storing it
-only adds an always-null column, so it is dropped from both the download query
-and the ClickHouse schema.
+``opprcd`` deliberately omits three WRDS columns:
+
+- ``forward_price``: OptionMetrics moved forward price into the separate
+  ``fwdprd`` file in manual version 5.0, and a live 2023 sample showed the
+  ``opprcd`` ``forward_price`` column is 0% populated.
+- ``root`` and ``suffix``: the 2010 OptionMetrics OSI (Options Symbology
+  Initiative) revision replaced these legacy fields with ``symbol`` +
+  ``symbol_flag``. For 1996-2010 rows ``symbol`` equals ``root || '.' || suffix``
+  exactly (verified 100% reconstructable across sampled years), and from 2011 on
+  ``root``/``suffix`` are empty while ``symbol`` is always populated. So they
+  carry no information beyond ``symbol`` and are dropped from both the download
+  query and the ClickHouse schema; if ever needed for a legacy tool they are
+  recoverable as ``splitByChar('.', symbol)``.
+
+Storing any of the three only adds always-null or fully redundant columns.
 """
 
 from __future__ import annotations
 
-# opprcd: 26 WRDS columns minus the always-null forward_price -> 25 columns.
+# opprcd: 26 WRDS columns minus forward_price (always null) and the legacy
+# root/suffix pair (redundant with symbol/symbol_flag) -> 23 columns.
 OPTION_PRICE_SOURCE_COLUMNS: tuple[str, ...] = (
     "secid", "date", "symbol", "symbol_flag", "exdate", "last_date", "cp_flag",
     "strike_price", "best_bid", "best_offer", "volume", "open_interest",
     "impl_volatility", "delta", "gamma", "vega", "theta", "optionid", "cfadj",
-    "am_settlement", "contract_size", "ss_flag", "expiry_indicator", "root",
-    "suffix",
+    "am_settlement", "contract_size", "ss_flag", "expiry_indicator",
 )
 
 # secprd: the 11 WRDS columns. The ClickHouse source_year column is added during

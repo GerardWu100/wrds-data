@@ -115,3 +115,9 @@ instead of the older unsigned column.
   `opprcd.forward_price`, and right-sized integer widths. Recorded that
   implied volatility and Greeks dominate option-table storage, so `Float32`
   precision or dropping those columns are the meaningful compression levers.
+- 2026-06-09: Re-benchmarked on the full 1996 table and moved `opprcd` IV/Greeks
+  to fixed-point `Decimal(6)` (`theta` as `Decimal64(6)`) for ~10% savings on the
+  heaviest columns and exact 6-decimal storage; dropped legacy `root`/`suffix`
+  as redundant with `symbol`/`symbol_flag`. Code/schema change only; previously
+  loaded ClickHouse tables were left untouched and would need a reload to adopt
+  the new schema.

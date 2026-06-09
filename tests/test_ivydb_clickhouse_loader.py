@@ -403,9 +403,12 @@ class IvydbClickhouseSchemaTests(unittest.TestCase):
         self.assertIn("`am_settlement` Nullable(UInt8) CODEC(ZSTD(6))", fake_client.commands[0])
         self.assertIn("`contract_size` Nullable(Int32) CODEC(ZSTD(6))", fake_client.commands[0])
         self.assertIn("`optionid` Nullable(UInt64) CODEC(Delta, ZSTD(6))", fake_client.commands[0])
-        self.assertIn("`impl_volatility` Nullable(Float32) CODEC(ZSTD(6))", fake_client.commands[0])
+        self.assertIn("`impl_volatility` Nullable(Decimal32(6)) CODEC(ZSTD(6))", fake_client.commands[0])
+        self.assertIn("`theta` Nullable(Decimal64(6)) CODEC(ZSTD(6))", fake_client.commands[0])
         self.assertIn("`strike_price` Nullable(Float32) CODEC(ZSTD(6))", fake_client.commands[0])
         self.assertNotIn("forward_price", fake_client.commands[0])
+        self.assertNotIn("`root`", fake_client.commands[0])
+        self.assertNotIn("`suffix`", fake_client.commands[0])
         self.assertNotIn("allow_nullable_key", fake_client.commands[0])
         self.assertIn("CREATE TABLE IF NOT EXISTS `ivydb`.`secprd`", fake_client.commands[1])
         self.assertIn("`date` Nullable(Date32) CODEC(DoubleDelta, ZSTD(6))", fake_client.commands[1])
@@ -471,13 +474,15 @@ class IvydbClickhouseWrdsSqlTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "no columns requested"):
             build_select_query("optionm_all", "opprcd2024", ())
 
-    def test_option_source_columns_exclude_forward_price(self) -> None:
-        """The opprcd download contract must drop the always-null forward_price."""
+    def test_option_source_columns_exclude_forward_price_root_suffix(self) -> None:
+        """opprcd drops always-null forward_price and legacy root/suffix."""
 
         from ivydb.clickhouse_loader.source_columns import OPTION_PRICE_SOURCE_COLUMNS
 
         self.assertNotIn("forward_price", OPTION_PRICE_SOURCE_COLUMNS)
-        self.assertEqual(len(OPTION_PRICE_SOURCE_COLUMNS), 25)
+        self.assertNotIn("root", OPTION_PRICE_SOURCE_COLUMNS)
+        self.assertNotIn("suffix", OPTION_PRICE_SOURCE_COLUMNS)
+        self.assertEqual(len(OPTION_PRICE_SOURCE_COLUMNS), 23)
 
 
 class IvydbClickhouseLoadTests(unittest.TestCase):
@@ -864,6 +869,34 @@ class IvydbClickhouseLoadTests(unittest.TestCase):
         self.assertEqual(str(result["am_settlement"].dtype), "UInt8")
         self.assertEqual(str(result["optionid"].dtype), "UInt64")
         self.assertEqual(str(result["contract_size"].dtype), "Int32")
+
+    def test_option_normalization_casts_greeks_to_exact_decimal(self) -> None:
+        """IV/Greeks become exact 6-place Decimals, with nulls preserved as None."""
+
+        from decimal import Decimal
+
+        import pandas as pd
+
+        from ivydb.clickhouse_loader.normalization import normalize_batch_for_clickhouse
+
+        batch = pd.DataFrame(
+            {
+                "delta": [-0.532607, None],
+                "theta": [-1477.935926, 0.0],
+                "impl_volatility": [0.294706, None],
+            }
+        )
+
+        result = normalize_batch_for_clickhouse(batch, self.option_price_plan())
+
+        # Stored value is bit-exact to the 6-decimal source grid, not a Float32
+        # approximation, and missing values become explicit None for ClickHouse.
+        self.assertEqual(result.loc[0, "delta"], Decimal("-0.532607"))
+        self.assertEqual(result.loc[0, "theta"], Decimal("-1477.935926"))
+        self.assertEqual(result.loc[0, "impl_volatility"], Decimal("0.294706"))
+        self.assertIsNone(result.loc[1, "delta"])
+        self.assertIsNone(result.loc[1, "impl_volatility"])
+        self.assertEqual(result.loc[1, "theta"], Decimal("0.000000"))
 
     def test_option_normalization_keeps_negative_contract_size_sentinel(self) -> None:
         """WRDS ``-99`` contract-size sentinels should be stored as signed integers."""

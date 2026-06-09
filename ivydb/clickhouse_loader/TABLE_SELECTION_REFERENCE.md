@@ -20,12 +20,21 @@ stored locally in `logs/ivydb_load_audit.jsonl`.
 
 The loader downloads explicit columns (see `source_columns.py`), not `SELECT *`.
 Every source table keeps its full WRDS column set except `opprcd`, which drops
-`forward_price` (25 of 26 columns). That column moved to the `fwdprd` file in
-manual version 5.0 and is 0% populated in the live `opprcd` tables, so it is
-excluded from both the download query and the ClickHouse schema. The implied
-volatility and Greek columns are kept by default but are the dominant storage
-cost (~81% of the compressed `opprcd` footprint); drop or downcast them only as
-a deliberate research decision.
+three columns (23 of 26):
+
+- `forward_price`: moved to the `fwdprd` file in manual version 5.0 and 0%
+  populated in the live `opprcd` tables.
+- `root` and `suffix`: the 2010 OptionMetrics OSI revision replaced these legacy
+  fields with `symbol` + `symbol_flag`. For 1996-2010 rows they are exactly
+  `symbol` split on `.` (100% reconstructable); from 2011 on they are empty. So
+  they carry nothing beyond `symbol` and are recoverable via
+  `splitByChar('.', symbol)` if a legacy tool needs them.
+
+The implied volatility and Greek columns are kept by default but are the
+dominant storage cost (~73% of the compressed `opprcd` footprint). They are
+stored as fixed-point `Decimal(6)` (exact to the source 6-decimal grid, ~10%
+smaller than `Float32`); drop them entirely only as a deliberate research
+decision.
 
 ## Excluded By Default
 

@@ -32,8 +32,7 @@ three columns (23 of 26):
 
 The implied volatility and Greek columns are kept by default but are the
 dominant storage cost (~73% of the compressed `opprcd` footprint). They are
-stored as fixed-point `Decimal(6)` (exact to the source 6-decimal grid, ~10%
-smaller than `Float32`); drop them entirely only as a deliberate research
+stored as `Float32`; drop or downcast them only as a deliberate research
 decision.
 
 ## Excluded By Default

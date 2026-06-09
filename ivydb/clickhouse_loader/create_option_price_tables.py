@@ -6,28 +6,26 @@ from ivydb.clickhouse_loader.clickhouse_client import create_client
 from ivydb.clickhouse_loader.config import AppConfig, default_config
 
 
-# Codec / width rationale (benchmarked on the full 15.76M-row 1996 table):
-# - The compressed footprint is dominated (~73%) by impl_volatility and the four
-#   Greeks. Those carry exactly 6 decimal places at the source, but as Float32
-#   their binary mantissa cannot represent 6-decimal values cleanly, so the low
-#   bits are noise that ZSTD cannot pack (only ~1.4-1.5x). Storing them as
-#   fixed-point Decimal(6) makes each value an exact scaled integer (value * 1e6)
-#   that ZSTD compresses ~10% smaller overall (measured: delta -9.8%, gamma
-#   -21.4%, impl_volatility -11.1%, vega -4.6%, theta -1.4%) and is bit-exact to
-#   the source 6-decimal grid rather than an approximation. Gorilla was ~17%
-#   worse and ZSTD(22) gained <1%, so codec tuning alone is a dead end.
-#   delta/gamma/vega/impl_volatility fit Decimal32(6) (<=9 significant digits);
-#   theta reaches -1477.9 -> 10 digits, so it needs the wider Decimal64(6).
-# - prices (strike_price, best_bid, best_offer) and cfadj stay Float32: they sit
-#   on a coarse, binary-exact tick grid (e.g. 1/16 dollar) with very few distinct
-#   values, so Float32 + ZSTD already compresses well; Decimal made them larger.
+# Codec / width rationale (benchmarked on a 2.23M-row 2023 sample):
+# - The compressed footprint is dominated (~81%) by impl_volatility and the four
+#   Greeks. Those are high-entropy floats that barely respond to codec changes
+#   (ZSTD(12) ~2% gain, Gorilla ~30% worse). The chosen lever is precision:
+#   storing prices, implied vol, Greeks, and cfadj as Float32 cut the whole
+#   opprcd table to ~64% of the all-Float64 size (73.5 -> 46.9 MB on-disk for the
+#   2.23M-row sample) while keeping ~7 significant digits, which is ample for
+#   option prices and Greeks. (Sizes use system.tables.total_bytes; the
+#   per-column system.columns view under-reports for the loader's ClickHouse
+#   user, which lacks the system.parts grant.)
+#   A further ~12% is available by storing the heavy columns as fixed-point
+#   Decimal (source IV/Greeks carry 6 decimals, prices 2), which is not applied
+#   here because it needs per-column width care (theta can overflow Decimal32).
 # - volume / open_interest are per-contract daily counts (observed max ~52k);
 #   UInt32 is the correct width and UInt64 only wasted space.
 # - am_settlement is a 0/1 flag, so UInt8 is sufficient.
 # - contract_size is Int32 rather than UInt32 because WRDS uses -99 as an
 #   OptionMetrics missing-value sentinel in historical opprcd rows.
 # - optionid increases within the (secid, date) sort runs, so Delta before ZSTD
-#   shrinks it markedly (~26x) with no precision loss.
+#   shrinks it markedly (~0.44 -> ~0.13 MB on the sample) with no precision loss.
 # - forward_price is intentionally absent: it moved to the fwdprd file in manual
 #   version 5.0 and the live opprcd column is 0% populated.
 # - root / suffix are intentionally absent: the 2010 OptionMetrics OSI revision
@@ -49,11 +47,11 @@ CREATE TABLE IF NOT EXISTS `{database}`.`{table}` (
     `best_offer` Nullable(Float32) CODEC(ZSTD(6)),
     `volume` Nullable(UInt32) CODEC(ZSTD(6)),
     `open_interest` Nullable(UInt32) CODEC(ZSTD(6)),
-    `impl_volatility` Nullable(Decimal32(6)) CODEC(ZSTD(6)),
-    `delta` Nullable(Decimal32(6)) CODEC(ZSTD(6)),
-    `gamma` Nullable(Decimal32(6)) CODEC(ZSTD(6)),
-    `vega` Nullable(Decimal32(6)) CODEC(ZSTD(6)),
-    `theta` Nullable(Decimal64(6)) CODEC(ZSTD(6)),
+    `impl_volatility` Nullable(Float32) CODEC(ZSTD(6)),
+    `delta` Nullable(Float32) CODEC(ZSTD(6)),
+    `gamma` Nullable(Float32) CODEC(ZSTD(6)),
+    `vega` Nullable(Float32) CODEC(ZSTD(6)),
+    `theta` Nullable(Float32) CODEC(ZSTD(6)),
     `optionid` Nullable(UInt64) CODEC(Delta, ZSTD(6)),
     `cfadj` Nullable(Float32) CODEC(ZSTD(6)),
     `am_settlement` Nullable(UInt8) CODEC(ZSTD(6)),

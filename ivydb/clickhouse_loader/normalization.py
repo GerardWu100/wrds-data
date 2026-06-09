@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from decimal import ROUND_HALF_EVEN, Decimal
 
 import pandas as pd
 
@@ -85,14 +84,6 @@ OPTION_ENUM_VALUES = {
     "ss_flag": {"0", "1", "E"},
 }
 OPTION_BINARY_FLAG_COLUMNS = ("am_settlement",)
-# impl_volatility and the four Greeks carry exactly 6 decimal places at the WRDS
-# source. The curated ClickHouse schema stores them as fixed-point Decimal(6)
-# (delta/gamma/vega/impl_volatility -> Decimal32(6); theta -> Decimal64(6)) to
-# remove Float32 mantissa noise and compress ~10% smaller. We convert the source
-# double straight to a 6-place Decimal here so the stored value is bit-exact to
-# the source grid, rather than letting it round-trip through Float32 first.
-OPTION_DECIMAL_COLUMNS = ("impl_volatility", "delta", "gamma", "vega", "theta")
-OPTION_DECIMAL_SCALE = 6
 
 
 def normalize_batch_for_clickhouse(batch: pd.DataFrame, table: TablePlan) -> pd.DataFrame:
@@ -125,52 +116,9 @@ def normalize_batch_for_clickhouse(batch: pd.DataFrame, table: TablePlan) -> pd.
     if table.source_prefix == "opprcd":
         for column_name in OPTION_BINARY_FLAG_COLUMNS:
             _validate_nullable_binary_flag(normalized, column_name)
-        for column_name in OPTION_DECIMAL_COLUMNS:
-            _cast_nullable_decimal(normalized, column_name, OPTION_DECIMAL_SCALE)
     for column_name in date_columns:
         _cast_nullable_date(normalized, column_name)
     return normalized
-
-
-def _cast_nullable_decimal(dataframe: pd.DataFrame, column_name: str, scale: int) -> None:
-    """Convert one nullable float column to exact fixed-point ``Decimal`` in place.
-
-    Parameters
-    ----------
-    dataframe:
-        Incoming WRDS chunk. The column is modified in place because the caller
-        already owns a copied DataFrame.
-    column_name:
-        Column whose ClickHouse target type is ``Nullable(Decimal32(scale))`` or
-        ``Nullable(Decimal64(scale))``.
-    scale:
-        Number of decimal places to keep (6 for IvyDB implied volatility/Greeks).
-
-    Notes
-    -----
-    WRDS exposes these columns as PostgreSQL ``double precision`` (pandas
-    ``float64``). The source values live on a 6-decimal grid, but a binary float
-    only approximates them. We quantize each value to ``scale`` decimal places so
-    the stored ``Decimal`` is exact to that grid, and map missing values to
-    ``None`` so ClickHouse treats them as nullable entries. ``clickhouse-connect``
-    writes Decimal columns from Python ``decimal.Decimal`` objects, so the
-    normalized column is an object column of ``Decimal`` or ``None``.
-    """
-
-    if column_name not in dataframe.columns:
-        return
-
-    # ``quantum`` is the smallest representable step, e.g. Decimal('0.000001').
-    # ROUND_HALF_EVEN (banker's rounding) matches IEEE float rounding and only
-    # ever triggers for the rare source value that is not already on the grid.
-    quantum = Decimal(1).scaleb(-scale)
-
-    def to_decimal(value: object) -> Decimal | None:
-        if pd.isna(value):
-            return None
-        return Decimal(float(value)).quantize(quantum, rounding=ROUND_HALF_EVEN)
-
-    dataframe[column_name] = dataframe[column_name].map(to_decimal).astype(object)
 
 
 def _cast_nullable_date(dataframe: pd.DataFrame, column_name: str) -> None:

@@ -87,11 +87,27 @@ started, completed, interrupted, failed, and cleared source-table events to the
 local JSON-lines file `logs/ivydb_load_audit.jsonl`. Set `resume = true` in
 `[loader]` to skip source tables whose latest matching audit event is complete.
 A newer started, interrupted, or failed event for the same source and target
-keeps the source eligible for deliberate cleanup and repair. For large yearly
-option-price tables, the first WRDS chunk can take much longer than later
-chunks because WRDS has to prepare the PostgreSQL cursor before streaming rows;
-the loader logs this first-chunk wait explicitly so a quiet terminal is not
-mistaken for a dead process.
+keeps the source eligible for deliberate cleanup and repair.
+
+WRDS rows are pulled through a PostgreSQL server-side cursor (see
+`wrds_stream.py`). This matters for the large yearly option-price tables:
+`opprcd2025` alone is about 265 million rows (~75 GB on disk) and `opprcd2024`
+about 381 million rows. The `wrds` package's default `raw_sql(chunksize=N)`
+uses psycopg2's client-side cursor, which buffers the entire result set in RAM
+before pandas yields any chunk; on a 31 GB machine with no swap that buffer
+triggers the OS out-of-memory killer, which terminates the process with SIGKILL
+and therefore never reaches the loader's `except` block or writes a `failed`
+audit row. The server-side cursor keeps the result set on the WRDS server and
+streams it in `wrds_batch_size` chunks, so client memory stays proportional to
+one chunk regardless of table size. The streaming read now opens a raw DBAPI
+connection from the WRDS SQLAlchemy engine and creates an explicit psycopg2
+named cursor. A named cursor is PostgreSQL's server-side cursor mechanism: the
+query is declared on the server, and the client repeatedly calls
+`fetchmany(wrds_batch_size)` to materialize only the current batch as a pandas
+DataFrame. Because a named cursor declared WITHOUT HOLD only survives inside a
+transaction, the loader disables `autocommit` for that dedicated connection
+while streaming, rolls back the read-only transaction at cleanup, restores the
+original `autocommit` setting, and returns the connection to the pool.
 
 Historical IvyDB tables are append-once loads. The loader refuses to insert
 into a destination that already has rows for the selected source. If one source
@@ -261,3 +277,11 @@ See `ivydb/IVYDB_CLICKHOUSE_RUN_MANUAL.md` for batch-by-batch config examples.
 - 2026-06-10: Added explicit first-WRDS-chunk progress logging and an
   `interrupted` audit status so manual stops can be distinguished from a quiet
   first chunk and cleaned up with `clear-failed`.
+- 2026-06-10: Fixed the real cause of the "quiet first chunk": `wrds.raw_sql`
+  used psycopg2's client-side cursor, which buffered the whole result set in RAM
+  before the first chunk. On `opprcd2025` (~265M rows) that exceeded the 31 GB /
+  no-swap machine and the OOM killer SIGKILLed the process, leaving a `started`
+  audit row with no `failed`/`interrupted` follow-up. `wrds_stream.py` now opens
+  a dedicated raw DBAPI connection and an explicit psycopg2 named cursor so rows
+  stream through PostgreSQL's server-side cursor path with memory bounded per
+  chunk.

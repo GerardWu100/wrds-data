@@ -487,6 +487,106 @@ class IvydbClickhouseWrdsSqlTests(unittest.TestCase):
         self.assertNotIn("suffix", OPTION_PRICE_SOURCE_COLUMNS)
         self.assertEqual(len(OPTION_PRICE_SOURCE_COLUMNS), 23)
 
+    def test_stream_table_uses_named_dbapi_cursor_and_fetchmany(self) -> None:
+        """Large WRDS tables must stream through a named server-side cursor."""
+
+        from ivydb.clickhouse_loader.wrds_stream import stream_table
+
+        class FakeCursor:
+            """DBAPI cursor that records named-cursor streaming behavior."""
+
+            def __init__(self, batches: list[list[tuple[int, str]]]) -> None:
+                self.batches = batches
+                self.description = (("secid",), ("ticker",))
+                self.executed_sql: str | None = None
+                self.fetch_sizes: list[int] = []
+                self.closed = False
+                self.itersize = 0
+
+            def execute(self, sql: str) -> None:
+                self.executed_sql = sql
+
+            def fetchmany(self, size: int) -> list[tuple[int, str]]:
+                self.fetch_sizes.append(size)
+                if not self.batches:
+                    return []
+                return self.batches.pop(0)
+
+            def close(self) -> None:
+                self.closed = True
+
+        class FakeDbapiConnection:
+            """DBAPI connection that only supports named cursors."""
+
+            def __init__(self) -> None:
+                self.autocommit = True
+                self.cursor_name: str | None = None
+                self.autocommit_seen_by_cursor: bool | None = None
+                self.cursor_obj = FakeCursor(
+                    [[(101, "AAA"), (102, "BBB")], [(103, "CCC")]]
+                )
+                self.rollback_called = False
+                self.closed = False
+
+            def cursor(self, name: str | None = None) -> FakeCursor:
+                self.cursor_name = name
+                self.autocommit_seen_by_cursor = self.autocommit
+                return self.cursor_obj
+
+            def rollback(self) -> None:
+                self.rollback_called = True
+
+            def close(self) -> None:
+                self.closed = True
+
+        class FakeEngine:
+            """SQLAlchemy-like engine exposing a raw DBAPI connection."""
+
+            def __init__(self) -> None:
+                self.dbapi_connection = FakeDbapiConnection()
+
+            def raw_connection(self) -> FakeDbapiConnection:
+                return self.dbapi_connection
+
+        class FakeWrdsConnection:
+            """WRDS-like object carrying the SQLAlchemy engine."""
+
+            def __init__(self) -> None:
+                self.engine = FakeEngine()
+
+        wrds_connection = FakeWrdsConnection()
+
+        chunks = list(
+            stream_table(
+                wrds_connection=wrds_connection,
+                source_library="optionm_all",
+                source_table="opprcd2025",
+                columns=("secid", "ticker"),
+                chunksize=2,
+            )
+        )
+
+        dbapi_connection = wrds_connection.engine.dbapi_connection
+        cursor = dbapi_connection.cursor_obj
+        self.assertIsNotNone(dbapi_connection.cursor_name)
+        self.assertEqual(cursor.itersize, 2)
+        self.assertEqual(cursor.fetch_sizes, [2, 2, 2])
+        self.assertEqual(len(chunks), 2)
+        self.assertEqual(chunks[0].to_dict("records"), [
+            {"secid": 101, "ticker": "AAA"},
+            {"secid": 102, "ticker": "BBB"},
+        ])
+        self.assertEqual(chunks[1].to_dict("records"), [{"secid": 103, "ticker": "CCC"}])
+        self.assertEqual(
+            cursor.executed_sql,
+            'SELECT "secid", "ticker" FROM "optionm_all"."opprcd2025"',
+        )
+        self.assertFalse(dbapi_connection.autocommit_seen_by_cursor)
+        self.assertTrue(dbapi_connection.autocommit)
+        self.assertTrue(cursor.closed)
+        self.assertTrue(dbapi_connection.rollback_called)
+        self.assertTrue(dbapi_connection.closed)
+
 
 class IvydbClickhouseLoadTests(unittest.TestCase):
     """Check local load orchestration behavior with fake clients."""

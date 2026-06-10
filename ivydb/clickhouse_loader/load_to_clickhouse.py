@@ -114,8 +114,8 @@ def _load_one_table_direct(
             table.target_table,
         )
         LOGGER.info(
-            "Waiting for first WRDS chunk from %s.%s; large yearly option tables "
-            "can be quiet here while WRDS prepares the cursor",
+            "Streaming %s.%s from WRDS through a server-side cursor; the first "
+            "chunk should arrive promptly and memory stays bounded per chunk",
             table.source_library,
             table.source_table,
         )

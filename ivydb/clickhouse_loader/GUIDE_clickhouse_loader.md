@@ -105,13 +105,15 @@ psycopg2 driver connection, and creates an explicit psycopg2 named cursor. A
 named cursor is PostgreSQL's server-side cursor mechanism: the query is
 declared on the server, and the client repeatedly calls
 `fetchmany(wrds_batch_size)` to materialize only the current batch as a pandas
-DataFrame. The unwrap step matters because SQLAlchemy's pooled connection proxy
-can delegate reads such as `autocommit` to the driver while ordinary assignment
-lands on the proxy itself. Because a named cursor declared WITHOUT HOLD only
-survives inside a transaction, the loader disables `autocommit` on the
-underlying driver connection while streaming, rolls back the read-only
-transaction at cleanup, restores the original `autocommit` setting, and returns
-the pooled connection to SQLAlchemy.
+DataFrame. The DataFrame columns come from the requested source-column contract,
+not from `cursor.description`, because psycopg2 named cursors can leave
+`description` unset around `execute`/first fetch. The unwrap step matters
+because SQLAlchemy's pooled connection proxy can delegate reads such as
+`autocommit` to the driver while ordinary assignment lands on the proxy itself.
+Because a named cursor declared WITHOUT HOLD only survives inside a transaction,
+the loader disables `autocommit` on the underlying driver connection while
+streaming, rolls back the read-only transaction at cleanup, restores the
+original `autocommit` setting, and returns the pooled connection to SQLAlchemy.
 
 Historical IvyDB tables are append-once loads. The loader refuses to insert
 into a destination that already has rows for the selected source. If one source
@@ -289,4 +291,6 @@ See `ivydb/IVYDB_CLICKHOUSE_RUN_MANUAL.md` for batch-by-batch config examples.
   a dedicated raw pooled connection, unwraps SQLAlchemy's proxy to the actual
   psycopg2 driver connection, disables driver autocommit, and uses an explicit
   psycopg2 named cursor so rows stream through PostgreSQL's server-side cursor
-  path with memory bounded per chunk.
+  path with memory bounded per chunk. It names each chunk's DataFrame from the
+  requested source columns rather than `cursor.description`, which can be unset
+  for named cursors.

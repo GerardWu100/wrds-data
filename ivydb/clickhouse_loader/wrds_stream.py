@@ -116,7 +116,7 @@ def stream_table(
     cursor.itersize = chunksize
     try:
         cursor.execute(query)
-        result_columns = [description[0] for description in cursor.description]
+        result_columns = list(columns)
         while True:
             rows = cursor.fetchmany(chunksize)
             if not rows:

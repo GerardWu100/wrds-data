@@ -682,6 +682,83 @@ class IvydbClickhouseWrdsSqlTests(unittest.TestCase):
         self.assertTrue(driver_connection.cursor_obj.closed)
         self.assertTrue(pooled_connection.closed)
 
+    def test_stream_table_uses_requested_columns_when_cursor_description_is_missing(self) -> None:
+        """Named server-side cursors may not expose description before fetching."""
+
+        from ivydb.clickhouse_loader.wrds_stream import stream_table
+
+        class FakeCursor:
+            """Cursor with no description metadata after execute."""
+
+            def __init__(self) -> None:
+                self.description = None
+                self.batches = [[(101, "AAA")]]
+                self.closed = False
+                self.itersize = 0
+
+            def execute(self, sql: str) -> None:
+                """Accept the selected SQL without populating description."""
+
+            def fetchmany(self, size: int) -> list[tuple[int, str]]:
+                if not self.batches:
+                    return []
+                return self.batches.pop(0)
+
+            def close(self) -> None:
+                self.closed = True
+
+        class FakeDriverConnection:
+            """Driver connection returning a cursor without description."""
+
+            def __init__(self) -> None:
+                self.autocommit = True
+                self.cursor_obj = FakeCursor()
+
+            def cursor(self, name: str | None = None) -> FakeCursor:
+                return self.cursor_obj
+
+            def rollback(self) -> None:
+                """Accept cleanup rollback."""
+
+        class FakePooledConnection:
+            """Pooled connection wrapper exposing the driver connection."""
+
+            def __init__(self) -> None:
+                self.driver_connection = FakeDriverConnection()
+                self.closed = False
+
+            def close(self) -> None:
+                self.closed = True
+
+        class FakeEngine:
+            """SQLAlchemy-like engine returning a pooled connection proxy."""
+
+            def __init__(self) -> None:
+                self.pooled_connection = FakePooledConnection()
+
+            def raw_connection(self) -> FakePooledConnection:
+                return self.pooled_connection
+
+        class FakeWrdsConnection:
+            """WRDS-like object carrying the SQLAlchemy engine."""
+
+            def __init__(self) -> None:
+                self.engine = FakeEngine()
+
+        wrds_connection = FakeWrdsConnection()
+
+        chunks = list(
+            stream_table(
+                wrds_connection=wrds_connection,
+                source_library="optionm_all",
+                source_table="opprcd2025",
+                columns=("secid", "ticker"),
+                chunksize=2,
+            )
+        )
+
+        self.assertEqual(chunks[0].to_dict("records"), [{"secid": 101, "ticker": "AAA"}])
+
 
 class IvydbClickhouseLoadTests(unittest.TestCase):
     """Check local load orchestration behavior with fake clients."""

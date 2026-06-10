@@ -32,8 +32,9 @@ three columns (23 of 26):
 
 The implied volatility and Greek columns are kept by default but are the
 dominant storage cost (~73% of the compressed `opprcd` footprint). They are
-stored as `Float32`; drop or downcast them only as a deliberate research
-decision.
+stored as `Decimal32(6)`, meaning four-byte fixed-point decimals with exactly
+six digits after the decimal point. The loader validates the `Decimal32(6)`
+range before insertion. Drop them only as a deliberate research decision.
 
 ## Excluded By Default
 

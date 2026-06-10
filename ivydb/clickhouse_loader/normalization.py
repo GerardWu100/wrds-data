@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from decimal import Decimal, InvalidOperation
 
 import pandas as pd
 
@@ -84,6 +85,17 @@ OPTION_ENUM_VALUES = {
     "ss_flag": {"0", "1", "E"},
 }
 OPTION_BINARY_FLAG_COLUMNS = ("am_settlement",)
+OPTION_DECIMAL32_SCALE = 6
+OPTION_DECIMAL32_QUANTUM = Decimal("0.000001")
+OPTION_DECIMAL32_MAX = Decimal("2147.483647")
+OPTION_DECIMAL32_MIN = Decimal("-2147.483648")
+OPTION_DECIMAL32_COLUMNS = (
+    "impl_volatility",
+    "delta",
+    "gamma",
+    "vega",
+    "theta",
+)
 
 
 def normalize_batch_for_clickhouse(batch: pd.DataFrame, table: TablePlan) -> pd.DataFrame:
@@ -116,9 +128,60 @@ def normalize_batch_for_clickhouse(batch: pd.DataFrame, table: TablePlan) -> pd.
     if table.source_prefix == "opprcd":
         for column_name in OPTION_BINARY_FLAG_COLUMNS:
             _validate_nullable_binary_flag(normalized, column_name)
+        for column_name in OPTION_DECIMAL32_COLUMNS:
+            _cast_nullable_decimal32_scaled(normalized, column_name)
     for column_name in date_columns:
         _cast_nullable_date(normalized, column_name)
     return normalized
+
+
+def _cast_nullable_decimal32_scaled(dataframe: pd.DataFrame, column_name: str) -> None:
+    """Convert one nullable six-decimal option model column to ``Decimal32(6)``.
+
+    Parameters
+    ----------
+    dataframe:
+        Incoming WRDS chunk. The column is modified in place because the caller
+        already owns a copied DataFrame.
+    column_name:
+        Implied-volatility or Greek column whose ClickHouse target type is
+        ``Nullable(Decimal32(6))``.
+
+    Notes
+    -----
+    ClickHouse ``Decimal32(6)`` stores a four-byte signed integer scaled by
+    1,000,000. Its valid value range is -2147.483648 through 2147.483647. The
+    WRDS source exposes these columns as PostgreSQL ``double precision``, but
+    the values are six-decimal model outputs. Converting through ``str(value)``
+    avoids carrying binary floating-point artifacts such as
+    ``0.12345600128173828`` into the fixed-point representation.
+    """
+
+    if column_name not in dataframe.columns:
+        return
+
+    converted_values: list[Decimal | None] = []
+    for raw_value in dataframe[column_name]:
+        if pd.isna(raw_value):
+            converted_values.append(None)
+            continue
+
+        try:
+            decimal_value = Decimal(str(raw_value)).quantize(OPTION_DECIMAL32_QUANTUM)
+        except (InvalidOperation, ValueError) as error:
+            raise ValueError(
+                f"{column_name} must contain values convertible to Decimal32({OPTION_DECIMAL32_SCALE})"
+            ) from error
+
+        if decimal_value < OPTION_DECIMAL32_MIN or decimal_value > OPTION_DECIMAL32_MAX:
+            raise ValueError(
+                f"{column_name} must fit Decimal32({OPTION_DECIMAL32_SCALE}) range "
+                f"{OPTION_DECIMAL32_MIN} to {OPTION_DECIMAL32_MAX}"
+            )
+
+        converted_values.append(decimal_value)
+
+    dataframe[column_name] = pd.Series(converted_values, index=dataframe.index, dtype="object")
 
 
 def _cast_nullable_date(dataframe: pd.DataFrame, column_name: str) -> None:

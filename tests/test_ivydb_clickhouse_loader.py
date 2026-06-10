@@ -403,7 +403,11 @@ class IvydbClickhouseSchemaTests(unittest.TestCase):
         self.assertIn("`am_settlement` Nullable(UInt8) CODEC(ZSTD(6))", fake_client.commands[0])
         self.assertIn("`contract_size` Nullable(Int32) CODEC(ZSTD(6))", fake_client.commands[0])
         self.assertIn("`optionid` Nullable(UInt64) CODEC(Delta, ZSTD(6))", fake_client.commands[0])
-        self.assertIn("`impl_volatility` Nullable(Float32) CODEC(ZSTD(6))", fake_client.commands[0])
+        self.assertIn("`impl_volatility` Nullable(Decimal32(6)) CODEC(ZSTD(6))", fake_client.commands[0])
+        self.assertIn("`delta` Nullable(Decimal32(6)) CODEC(ZSTD(6))", fake_client.commands[0])
+        self.assertIn("`gamma` Nullable(Decimal32(6)) CODEC(ZSTD(6))", fake_client.commands[0])
+        self.assertIn("`vega` Nullable(Decimal32(6)) CODEC(ZSTD(6))", fake_client.commands[0])
+        self.assertIn("`theta` Nullable(Decimal32(6)) CODEC(ZSTD(6))", fake_client.commands[0])
         self.assertIn("`strike_price` Nullable(Float32) CODEC(ZSTD(6))", fake_client.commands[0])
         self.assertNotIn("forward_price", fake_client.commands[0])
         self.assertNotIn("`root`", fake_client.commands[0])
@@ -920,6 +924,46 @@ class IvydbClickhouseLoadTests(unittest.TestCase):
         self.assertIsNone(result.loc[1, "date"])
         self.assertEqual(result.loc[0, "exdate"], date(2024, 3, 15))
         self.assertEqual(result.loc[1, "last_date"], date(2024, 1, 3))
+
+    def test_option_normalization_quantizes_greeks_to_decimal32_scale(self) -> None:
+        """IV and Greeks should be fixed-point decimals with six decimal places."""
+
+        from decimal import Decimal
+
+        import pandas as pd
+
+        from ivydb.clickhouse_loader.normalization import normalize_batch_for_clickhouse
+
+        batch = pd.DataFrame(
+            {
+                "impl_volatility": [0.123456],
+                "delta": [-0.500000],
+                "gamma": [0.001234],
+                "vega": [12.345678],
+                "theta": [-1477.853027],
+            }
+        )
+
+        result = normalize_batch_for_clickhouse(batch, self.option_price_plan())
+
+        self.assertEqual(result.loc[0, "impl_volatility"], Decimal("0.123456"))
+        self.assertEqual(result.loc[0, "delta"], Decimal("-0.500000"))
+        self.assertEqual(result.loc[0, "gamma"], Decimal("0.001234"))
+        self.assertEqual(result.loc[0, "vega"], Decimal("12.345678"))
+        self.assertEqual(result.loc[0, "theta"], Decimal("-1477.853027"))
+
+    def test_option_normalization_rejects_greeks_outside_decimal32_range(self) -> None:
+        """Decimal32(6) cannot store values with magnitude above about 2147."""
+
+        import pandas as pd
+
+        from ivydb.clickhouse_loader.normalization import normalize_batch_for_clickhouse
+
+        with self.assertRaisesRegex(ValueError, "theta.*Decimal32\\(6\\)"):
+            normalize_batch_for_clickhouse(
+                pd.DataFrame({"theta": [-2147.483649]}),
+                self.option_price_plan(),
+            )
 
     def test_option_normalization_rejects_fractional_volume(self) -> None:
         """Count columns cannot silently truncate a fractional WRDS value."""

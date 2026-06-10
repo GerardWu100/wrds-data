@@ -59,23 +59,25 @@ contract and avoids breaking the insert if WRDS adds an unrelated column. For
   legacy tool ever needs the split.
 
 `opprcd` codec and width choices are benchmarked, not guessed. On a 2.23M-row
-2023 sample the compressed footprint is ~81% implied volatility plus the four
-Greeks (high-entropy floats that barely respond to codecs: `ZSTD(12)` saved
-~2%, `Gorilla` was ~30% worse). Because codec tuning is a dead end there, the
-price/IV/Greek/`cfadj` columns are stored as `Float32`, which cut the whole
-table to ~64% of the all-Float64 size (73.5 -> 46.9 MB on-disk for the sample)
-while keeping ~7 significant digits. Size figures use
+2023 sample the compressed footprint was dominated by implied volatility plus
+the four Greeks. These WRDS source columns are PostgreSQL `double precision`
+values, but the economic values are six-decimal model outputs. The loader
+therefore stores them as `Decimal32(6)`, a four-byte fixed-point decimal that
+keeps exactly six digits after the decimal point. For example, `0.123456` is
+stored as the scaled integer `123456`. This removes noisy `Float32` mantissa
+bits and improves compression while preserving the six-decimal WRDS value.
+`Decimal32(6)` can store values from `-2147.483648` through `2147.483647`; the
+normalization layer checks that range before insertion. Prices and `cfadj`
+remain `Float32`, because bid/offer prices already compressed well on tick
+grids and `cfadj` is not a meaningful storage driver. Size figures use
 `system.tables.total_bytes`; the per-column `system.columns` view under-reports
 for the loader user, which lacks the `system.parts` grant. Integer choices:
-`volume` and `open_interest`
-are `UInt32` (per-contract daily counts, not `UInt64`), `am_settlement` is
-`UInt8` with an explicit 0/1 boundary check, `contract_size` is `Int32` because
-WRDS uses `-99` as an OptionMetrics missing-value sentinel, and `optionid` adds
-a `Delta` codec because it increases within the sort runs. `secprd` floats use
-`Float32` for the same reason.
-A further ~10-12% on the IV/Greeks is available via fixed-point `Decimal(6)`
-(benchmarked on the full 1996 table) but is intentionally not applied, to keep
-those columns as `Float32` floats for research ergonomics.
+`volume` and `open_interest` are `UInt32` (per-contract daily counts, not
+`UInt64`), `am_settlement` is `UInt8` with an explicit 0/1 boundary check,
+`contract_size` is `Int32` because WRDS uses `-99` as an OptionMetrics
+missing-value sentinel, and `optionid` adds a `Delta` codec because it helps
+recent dense years even though it can hurt sparse early years. `secprd` floats
+use `Float32`.
 Dropping the IV/Greeks columns entirely (≈ 19% of current) remains an
 available research decision but is not done by default.
 
@@ -244,6 +246,9 @@ See `ivydb/IVYDB_CLICKHOUSE_RUN_MANUAL.md` for batch-by-batch config examples.
   columns). They are redundant with `symbol`/`symbol_flag`: verified losslessly
   reconstructable for 1996-2010 (`symbol = root || '.' || suffix`) and empty from
   2011 after the OptionMetrics OSI revision; recover via `splitByChar('.',
-  symbol)` if needed. Benchmarked fixed-point `Decimal(6)` for IV/Greeks (~10%
-  smaller) but deliberately kept them `Float32` for research ergonomics.
-  DDL/loader change only; existing loaded tables unchanged.
+  symbol)` if needed. DDL/loader change only; existing loaded tables unchanged.
+- 2026-06-10: Switched `opprcd` implied volatility and Greeks to
+  `Decimal32(6)` after checking loaded 1996 theta fit the range
+  (`-1477.8530` to `37.9352`). Normalization now converts those columns to
+  six-decimal `Decimal` values and rejects rows outside the `Decimal32(6)` range
+  before ClickHouse insertion.

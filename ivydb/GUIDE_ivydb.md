@@ -113,10 +113,12 @@ instead of the older unsigned column.
 - 2026-06-06: Benchmarked ClickHouse codecs on a real opprcd sample; switched
   the loader to explicit download columns, dropped the always-null
   `opprcd.forward_price`, and right-sized integer widths. Recorded that
-  implied volatility and Greeks dominate option-table storage, so `Float32`
+  implied volatility and Greeks dominate option-table storage, so fixed-point
   precision or dropping those columns are the meaningful compression levers.
 - 2026-06-09: Dropped legacy `opprcd` `root`/`suffix` columns as redundant with
-  `symbol`/`symbol_flag` (lossless for 1996-2010, empty from 2011). Kept IV/Greeks
-  as `Float32` for now (a `Decimal(6)` ~10% saving was benchmarked but deferred
-  for research ergonomics). Code/schema change only; previously loaded ClickHouse
-  tables were left untouched and would need a reload to drop the columns.
+  `symbol`/`symbol_flag` (lossless for 1996-2010, empty from 2011). Code/schema
+  change only; previously loaded ClickHouse tables were left untouched and would
+  need a reload to drop the columns.
+- 2026-06-10: Changed `opprcd` implied volatility and Greeks from `Float32` to
+  `Decimal32(6)`, with normalization converting WRDS values to six-decimal
+  fixed-point decimals and rejecting values outside the `Decimal32(6)` range.

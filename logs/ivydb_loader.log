@@ -1099,3 +1099,21 @@ Traceback (most recent call last):
     result_columns = [description[0] for description in cursor.description]
                                                         ^^^^^^^^^^^^^^^^^^
 TypeError: 'NoneType' object is not iterable
+2026-06-10 14:53:14 UTC INFO ivydb.clickhouse_loader.cli: Writing run log to /home/ai4000/projects/one-time-projects/wrds-data/logs/ivydb_loader.log
+2026-06-10 14:53:14 UTC INFO ivydb.clickhouse_loader.cli: Command=load target_database=ivydb tables=1
+2026-06-10 14:53:16 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Starting IvyDB load for 1 source table(s); local audit file: /home/ai4000/projects/one-time-projects/wrds-data/logs/ivydb_load_audit.jsonl
+2026-06-10 14:53:16 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loading optionm_all.opprcd2025 -> opprcd2025
+2026-06-10 14:53:16 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Streaming optionm_all.opprcd2025 from WRDS through a server-side cursor; the first chunk should arrive promptly and memory stays bounded per chunk
+2026-06-10 14:53:17 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Received WRDS chunk 1 from optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 14:53:18 UTC ERROR ivydb.clickhouse_loader.load_to_clickhouse: Failed optionm_all.opprcd2025 -> opprcd2025 after 0 loaded row(s)
+Traceback (most recent call last):
+  File "/home/ai4000/projects/one-time-projects/wrds-data/ivydb/clickhouse_loader/load_to_clickhouse.py", line 139, in _load_one_table_direct
+    normalized_chunk = normalize_batch_for_clickhouse(chunk, table)
+  File "/home/ai4000/projects/one-time-projects/wrds-data/ivydb/clickhouse_loader/normalization.py", line 132, in normalize_batch_for_clickhouse
+    _cast_nullable_decimal32_scaled(normalized, column_name)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ai4000/projects/one-time-projects/wrds-data/ivydb/clickhouse_loader/normalization.py", line 177, in _cast_nullable_decimal32_scaled
+    raise ValueError(
+    ...<2 lines>...
+    )
+ValueError: theta must fit Decimal32(6) range -2147.483648 to 2147.483647

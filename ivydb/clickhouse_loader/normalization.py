@@ -126,16 +126,8 @@ OPTION_DECIMAL_RULES = (
         OPTION_DECIMAL32_MIN,
         OPTION_DECIMAL32_MAX,
     ),
-    DecimalColumnRule(
-        "vega",
-        "Decimal32",
-        OPTION_DECIMAL_SCALE,
-        OPTION_DECIMAL_QUANTUM,
-        OPTION_DECIMAL32_MIN,
-        OPTION_DECIMAL32_MAX,
-    ),
 )
-OPTION_FLOAT32_COLUMNS = ("theta",)
+OPTION_FLOAT32_COLUMNS = ("vega", "theta")
 
 
 def normalize_batch_for_clickhouse(batch: pd.DataFrame, table: TablePlan) -> pd.DataFrame:
@@ -193,9 +185,9 @@ def _cast_nullable_decimal_scaled(dataframe: pd.DataFrame, rule: DecimalColumnRu
     The WRDS source exposes these columns as PostgreSQL ``double precision``,
     but the values are six-decimal model outputs. Converting through
     ``str(value)`` avoids carrying binary floating-point artifacts such as
-    ``0.12345600128173828`` into the fixed-point representation. Theta is not
-    handled here because it uses compact ``Float32`` after recent rows exceeded
-    the ``Decimal32(6)`` range.
+    ``0.12345600128173828`` into the fixed-point representation. Vega and theta
+    are not handled here because they use compact ``Float32`` after recent rows
+    exceeded the ``Decimal32(6)`` range.
     """
 
     column_name = rule.column_name
@@ -240,10 +232,10 @@ def _cast_nullable_float32(dataframe: pd.DataFrame, column_name: str) -> None:
 
     Notes
     -----
-    Theta can exceed ``Decimal32(6)`` range in recent option-price rows.
-    ``Float32`` keeps the raw width at four bytes while accepting those larger
-    model-output values. This intentionally gives up exact six-decimal storage
-    for theta only.
+    Vega and theta can exceed ``Decimal32(6)`` range in recent option-price
+    rows. ``Float32`` keeps the raw width at four bytes while accepting those
+    larger model-output values. This intentionally gives up exact six-decimal
+    storage for the model columns that proved too wide for fixed point.
     """
 
     if column_name not in dataframe.columns:

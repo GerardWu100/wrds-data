@@ -8,13 +8,13 @@ from ivydb.clickhouse_loader.config import AppConfig, default_config
 
 # Codec / width rationale (benchmarked on a 2.23M-row 2023 sample):
 # - The compressed footprint is dominated by impl_volatility and the four
-#   Greeks. Those source values carry six decimal places, so IV, delta, gamma,
-#   and vega are stored as Decimal32(6): fixed-point 4-byte integers scaled by
-#   1,000,000. Theta uses Float32 because recent years contain values outside
-#   Decimal32(6)'s +/-2147.483647 range, and Decimal64(6) doubles raw width for
-#   a model output where exact six-decimal storage is not worth the size cost.
-#   The loader validates each decimal column's target range at the chunk
-#   boundary before insertion.
+#   Greeks. Those source values carry six decimal places, so IV, delta, and
+#   gamma are stored as Decimal32(6): fixed-point 4-byte integers scaled by
+#   1,000,000. Vega and theta use Float32 because recent years contain values
+#   outside Decimal32(6)'s +/-2147.483647 range, and Decimal64(6) doubles raw
+#   width for model outputs where exact six-decimal storage is not worth the
+#   size cost. The loader validates each decimal column's target range at the
+#   chunk boundary before insertion.
 #   Prices and cfadj remain Float32. Historical bid/offer prices often sit on
 #   binary-exact tick grids and compressed worse as Decimal in local tests, while
 #   cfadj is a low-footprint adjustment factor where Decimal friction is not
@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS `{database}`.`{table}` (
     `impl_volatility` Nullable(Decimal32(6)) CODEC(ZSTD(6)),
     `delta` Nullable(Decimal32(6)) CODEC(ZSTD(6)),
     `gamma` Nullable(Decimal32(6)) CODEC(ZSTD(6)),
-    `vega` Nullable(Decimal32(6)) CODEC(ZSTD(6)),
+    `vega` Nullable(Float32) CODEC(ZSTD(6)),
     `theta` Nullable(Float32) CODEC(ZSTD(6)),
     `optionid` Nullable(UInt64) CODEC(Delta, ZSTD(6)),
     `cfadj` Nullable(Float32) CODEC(ZSTD(6)),

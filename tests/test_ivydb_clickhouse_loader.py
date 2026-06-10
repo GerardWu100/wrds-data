@@ -406,7 +406,7 @@ class IvydbClickhouseSchemaTests(unittest.TestCase):
         self.assertIn("`impl_volatility` Nullable(Decimal32(6)) CODEC(ZSTD(6))", fake_client.commands[0])
         self.assertIn("`delta` Nullable(Decimal32(6)) CODEC(ZSTD(6))", fake_client.commands[0])
         self.assertIn("`gamma` Nullable(Decimal32(6)) CODEC(ZSTD(6))", fake_client.commands[0])
-        self.assertIn("`vega` Nullable(Decimal32(6)) CODEC(ZSTD(6))", fake_client.commands[0])
+        self.assertIn("`vega` Nullable(Float32) CODEC(ZSTD(6))", fake_client.commands[0])
         self.assertIn("`theta` Nullable(Float32) CODEC(ZSTD(6))", fake_client.commands[0])
         self.assertIn("`strike_price` Nullable(Float32) CODEC(ZSTD(6))", fake_client.commands[0])
         self.assertNotIn("forward_price", fake_client.commands[0])
@@ -1239,8 +1239,8 @@ class IvydbClickhouseLoadTests(unittest.TestCase):
         self.assertEqual(result.loc[0, "exdate"], date(2024, 3, 15))
         self.assertEqual(result.loc[1, "last_date"], date(2024, 1, 3))
 
-    def test_option_normalization_quantizes_iv_and_non_theta_greeks(self) -> None:
-        """IV and non-theta Greeks should preserve six-decimal fixed point."""
+    def test_option_normalization_quantizes_iv_delta_and_gamma(self) -> None:
+        """IV, delta, and gamma should preserve six-decimal fixed point."""
 
         from decimal import Decimal
 
@@ -1253,7 +1253,6 @@ class IvydbClickhouseLoadTests(unittest.TestCase):
                 "impl_volatility": [0.123456],
                 "delta": [-0.500000],
                 "gamma": [0.001234],
-                "vega": [12.345678],
             }
         )
 
@@ -1262,10 +1261,9 @@ class IvydbClickhouseLoadTests(unittest.TestCase):
         self.assertEqual(result.loc[0, "impl_volatility"], Decimal("0.123456"))
         self.assertEqual(result.loc[0, "delta"], Decimal("-0.500000"))
         self.assertEqual(result.loc[0, "gamma"], Decimal("0.001234"))
-        self.assertEqual(result.loc[0, "vega"], Decimal("12.345678"))
 
-    def test_option_normalization_casts_theta_to_float32(self) -> None:
-        """Theta should use compact Float32 because Decimal32 range is too narrow."""
+    def test_option_normalization_casts_vega_and_theta_to_float32(self) -> None:
+        """Vega and theta should use Float32 because Decimal32 range is too narrow."""
 
         import numpy as np
         import pandas as pd
@@ -1273,24 +1271,32 @@ class IvydbClickhouseLoadTests(unittest.TestCase):
         from ivydb.clickhouse_loader.normalization import normalize_batch_for_clickhouse
 
         result = normalize_batch_for_clickhouse(
-            pd.DataFrame({"theta": [-2147.483649, None]}),
+            pd.DataFrame(
+                {
+                    "vega": [2147.483648, None],
+                    "theta": [-2147.483649, None],
+                }
+            ),
             self.option_price_plan(),
         )
 
+        self.assertEqual(str(result["vega"].dtype), "Float32")
+        self.assertTrue(np.isclose(result.loc[0, "vega"], 2147.483648))
+        self.assertTrue(pd.isna(result.loc[1, "vega"]))
         self.assertEqual(str(result["theta"].dtype), "Float32")
         self.assertTrue(np.isclose(result.loc[0, "theta"], -2147.483649))
         self.assertTrue(pd.isna(result.loc[1, "theta"]))
 
-    def test_option_normalization_rejects_non_theta_greeks_outside_decimal32_range(self) -> None:
-        """Non-theta IV/Greek columns still use the narrower Decimal32(6)."""
+    def test_option_normalization_rejects_remaining_decimal_greeks_outside_range(self) -> None:
+        """The remaining fixed-point model columns still use Decimal32(6)."""
 
         import pandas as pd
 
         from ivydb.clickhouse_loader.normalization import normalize_batch_for_clickhouse
 
-        with self.assertRaisesRegex(ValueError, "vega.*Decimal32\\(6\\)"):
+        with self.assertRaisesRegex(ValueError, "gamma.*Decimal32\\(6\\)"):
             normalize_batch_for_clickhouse(
-                pd.DataFrame({"vega": [2147.483648]}),
+                pd.DataFrame({"gamma": [2147.483648]}),
                 self.option_price_plan(),
             )
 

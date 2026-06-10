@@ -122,3 +122,7 @@ instead of the older unsigned column.
 - 2026-06-10: Changed `opprcd` implied volatility and Greeks from `Float32` to
   `Decimal32(6)`, with normalization converting WRDS values to six-decimal
   fixed-point decimals and rejecting values outside the `Decimal32(6)` range.
+- 2026-06-10: Changed `opprcd.vega` back to `Float32` after `opprcd2025`
+  exceeded the `Decimal32(6)` range during load. Implied volatility, delta, and
+  gamma remain `Decimal32(6)`, while vega and theta are compact `Float32`
+  model-output columns.

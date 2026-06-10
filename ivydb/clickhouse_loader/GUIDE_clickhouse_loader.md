@@ -63,15 +63,16 @@ contract and avoids breaking the insert if WRDS adds an unrelated column. For
 2023 sample the compressed footprint was dominated by implied volatility plus
 the four Greeks. These WRDS source columns are PostgreSQL `double precision`
 values, but the economic values are six-decimal model outputs. The loader
-therefore stores implied volatility, delta, gamma, and vega as `Decimal32(6)`,
-a four-byte fixed-point decimal that keeps exactly six digits after the decimal
+therefore stores implied volatility, delta, and gamma as `Decimal32(6)`, a
+four-byte fixed-point decimal that keeps exactly six digits after the decimal
 point. For example, `0.123456` is stored as the scaled integer `123456`. This
 removes noisy `Float32` mantissa bits and improves compression while preserving
-the six-decimal WRDS value. Theta uses `Float32`: recent 2025 rows exceeded
-`Decimal32(6)`'s `-2147.483648` to `2147.483647` range, and `Decimal64(6)` would
-double theta's raw width for a model output where exact six-decimal storage is
-not worth the size cost. The normalization layer checks each decimal column's
-target range before insertion. Prices and `cfadj` remain `Float32`, because
+the six-decimal WRDS value where the observed range fits. Vega and theta use
+`Float32`: recent 2025 rows exceeded `Decimal32(6)`'s `-2147.483648` to
+`2147.483647` range, and `Decimal64(6)` would double their raw width for model
+outputs where exact six-decimal storage is not worth the size cost. The
+normalization layer checks each decimal column's target range before insertion.
+Prices and `cfadj` remain `Float32`, because
 bid/offer prices already compressed well on tick grids and `cfadj` is not a
 meaningful storage driver. Size figures use
 `system.tables.total_bytes`; the per-column `system.columns` view under-reports
@@ -287,7 +288,11 @@ See `ivydb/IVYDB_CLICKHOUSE_RUN_MANUAL.md` for batch-by-batch config examples.
   theta values outside `Decimal32(6)`'s `-2147.483648` to `2147.483647` range.
   `Decimal64(6)` would preserve exact six-decimal values but doubles raw width;
   theta is a model output, so the loader keeps it compact. Other IV/Greek
-  columns remain `Decimal32(6)`.
+  columns remained `Decimal32(6)` at this point.
+- 2026-06-10: Changed `opprcd.vega` to `Float32` after the same `opprcd2025`
+  load later produced vega values outside the `Decimal32(6)` range after
+  15,000,000 inserted rows. Implied volatility, delta, and gamma remain
+  `Decimal32(6)`.
 - 2026-06-10: Added explicit first-WRDS-chunk progress logging and an
   `interrupted` audit status so manual stops can be distinguished from a quiet
   first chunk and cleaned up with `clear-failed`.

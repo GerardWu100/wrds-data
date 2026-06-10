@@ -32,12 +32,12 @@ three columns (23 of 26):
 
 The implied volatility and Greek columns are kept by default but are the
 dominant storage cost (~73% of the compressed `opprcd` footprint). They are
-stored as fixed-point decimals with exactly six digits after the decimal point:
-implied volatility, delta, gamma, and vega use `Decimal32(6)`. Theta uses
-`Float32` because recent rows exceed the narrower `Decimal32(6)` range and
-`Decimal64(6)` doubles raw width for a model output. The loader validates each
-decimal column's target range before insertion. Drop them only as a deliberate
-research decision.
+stored as fixed-point decimals with exactly six digits after the decimal point
+when the observed range fits: implied volatility, delta, and gamma use
+`Decimal32(6)`. Vega and theta use `Float32` because recent rows exceed the
+narrower `Decimal32(6)` range and `Decimal64(6)` doubles raw width for model
+outputs. The loader validates each decimal column's target range before
+insertion. Drop them only as a deliberate research decision.
 
 ## Excluded By Default
 

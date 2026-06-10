@@ -44,11 +44,6 @@ def source_year_summary_sql(database: str, table: str, source_year_column: str, 
 def required_key_null_count_sql(database: str, table: str, column: str) -> str:
     """Build a query that counts nulls in one required key column."""
 
-    if column == "cp_flag":
-        return (
-            f"SELECT count() FROM `{database}`.`{table}` "
-            f"WHERE `{column}` IS NULL OR `{column}` = ''"
-        )
     return f"SELECT count() FROM `{database}`.`{table}` WHERE `{column}` IS NULL"
 
 

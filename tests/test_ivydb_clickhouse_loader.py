@@ -1659,6 +1659,18 @@ class IvydbClickhouseValidationTests(unittest.TestCase):
         self.assertIn("GROUP BY `secid`, `date`, `optionid`, `exdate`, `cp_flag`, `strike_price`", sql)
         self.assertIn("HAVING count() > 1", sql)
 
+    def test_cp_flag_required_key_validation_uses_enum_safe_null_check(self) -> None:
+        """The cp_flag enum should not be compared with an empty string."""
+
+        from ivydb.clickhouse_loader.validation import required_key_null_count_sql
+
+        sql = required_key_null_count_sql("ivydb", "opprcd2025", "cp_flag")
+
+        self.assertEqual(
+            sql,
+            "SELECT count() FROM `ivydb`.`opprcd2025` WHERE `cp_flag` IS NULL",
+        )
+
     def test_consolidated_secprd_validation_reports_each_source_year(self) -> None:
         """A consolidated table should validate row counts and dates by source year."""
 

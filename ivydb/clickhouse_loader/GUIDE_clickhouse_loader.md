@@ -307,3 +307,6 @@ See `ivydb/IVYDB_CLICKHOUSE_RUN_MANUAL.md` for batch-by-batch config examples.
   path with memory bounded per chunk. It names each chunk's DataFrame from the
   requested source columns rather than `cursor.description`, which can be unset
   for named cursors.
+- 2026-06-10: Fixed validation required-key SQL so enum columns such as
+  `cp_flag` are checked with `IS NULL` only. Comparing a ClickHouse enum to an
+  empty string raises `UNKNOWN_ELEMENT_OF_ENUM`.

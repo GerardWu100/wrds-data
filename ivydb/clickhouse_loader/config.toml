@@ -50,7 +50,7 @@ run_log_path = "logs/ivydb_loader.log"
 
 [tables.option_prices]
 # Set false to ignore option price years in this run.
-enabled = false
+enabled = true
 # WRDS PostgreSQL library/schema for OptionMetrics IvyDB US.
 source_library = "optionm_all"
 # Source table prefix. The loader combines this with each year, for example opprcd2024.
@@ -95,7 +95,7 @@ source_year_column = "source_year"
 
 [tables.static_reference]
 # Set false to ignore static/reference tables in this run.
-enabled = true
+enabled = false
 # Static/reference tables to load. Use either table names or explicit mappings.
 # Allowed table-name shortcuts: securd, secnmd, exchgd, distrd, opinfd, opcrsphist.
 tables = [

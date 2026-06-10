@@ -1044,3 +1044,11 @@ ValueError: contract_size must contain whole non-negative values no greater than
 2026-06-08 16:06:21 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 15,700,000 rows from optionm_all.opprcd1996
 2026-06-08 16:06:22 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 15,765,291 rows from optionm_all.opprcd1996
 2026-06-08 16:06:23 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Completed optionm_all.opprcd1996 -> opprcd1996 with 15,765,291 row(s)
+2026-06-10 13:39:17 UTC INFO ivydb.clickhouse_loader.cli: Writing run log to /home/ai4000/projects/one-time-projects/wrds-data/logs/ivydb_loader.log
+2026-06-10 13:39:52 UTC INFO ivydb.clickhouse_loader.cli: Writing run log to /home/ai4000/projects/one-time-projects/wrds-data/logs/ivydb_loader.log
+2026-06-10 13:40:21 UTC INFO ivydb.clickhouse_loader.cli: Writing run log to /home/ai4000/projects/one-time-projects/wrds-data/logs/ivydb_loader.log
+2026-06-10 13:40:21 UTC INFO ivydb.clickhouse_loader.cli: Command=load target_database=ivydb tables=1
+2026-06-10 13:40:23 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Starting IvyDB load for 1 source table(s); local audit file: /home/ai4000/projects/one-time-projects/wrds-data/logs/ivydb_load_audit.jsonl
+2026-06-10 13:40:23 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loading optionm_all.opprcd2025 -> opprcd2025
+2026-06-10 13:48:29 UTC INFO ivydb.clickhouse_loader.cli: Writing run log to /home/ai4000/projects/one-time-projects/wrds-data/logs/ivydb_loader.log
+2026-06-10 13:48:29 UTC INFO ivydb.clickhouse_loader.cli: Command=validate target_database=ivydb tables=1

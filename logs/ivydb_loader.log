@@ -1052,3 +1052,8 @@ ValueError: contract_size must contain whole non-negative values no greater than
 2026-06-10 13:40:23 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loading optionm_all.opprcd2025 -> opprcd2025
 2026-06-10 13:48:29 UTC INFO ivydb.clickhouse_loader.cli: Writing run log to /home/ai4000/projects/one-time-projects/wrds-data/logs/ivydb_loader.log
 2026-06-10 13:48:29 UTC INFO ivydb.clickhouse_loader.cli: Command=validate target_database=ivydb tables=1
+2026-06-10 13:54:40 UTC INFO ivydb.clickhouse_loader.cli: Writing run log to /home/ai4000/projects/one-time-projects/wrds-data/logs/ivydb_loader.log
+2026-06-10 13:54:40 UTC INFO ivydb.clickhouse_loader.cli: Command=load target_database=ivydb tables=1
+2026-06-10 13:54:42 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Starting IvyDB load for 1 source table(s); local audit file: /home/ai4000/projects/one-time-projects/wrds-data/logs/ivydb_load_audit.jsonl
+2026-06-10 13:54:42 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loading optionm_all.opprcd2025 -> opprcd2025
+2026-06-10 13:54:42 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Waiting for first WRDS chunk from optionm_all.opprcd2025; large yearly option tables can be quiet here while WRDS prepares the cursor

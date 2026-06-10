@@ -587,6 +587,101 @@ class IvydbClickhouseWrdsSqlTests(unittest.TestCase):
         self.assertTrue(dbapi_connection.rollback_called)
         self.assertTrue(dbapi_connection.closed)
 
+    def test_stream_table_sets_autocommit_on_wrapped_driver_connection(self) -> None:
+        """SQLAlchemy raw-connection proxies must not hide driver autocommit."""
+
+        from ivydb.clickhouse_loader.wrds_stream import stream_table
+
+        class FakeCursor:
+            """Cursor that raises like psycopg2 if opened outside a transaction."""
+
+            def __init__(self, driver_connection: object) -> None:
+                self.driver_connection = driver_connection
+                self.description = (("secid",),)
+                self.closed = False
+                self.itersize = 0
+                self.executed_sql: str | None = None
+
+            def execute(self, sql: str) -> None:
+                if self.driver_connection.autocommit:
+                    raise RuntimeError("can't use a named cursor outside of transactions")
+                self.executed_sql = sql
+
+            def fetchmany(self, size: int) -> list[tuple[int]]:
+                return []
+
+            def close(self) -> None:
+                self.closed = True
+
+        class FakeDriverConnection:
+            """Underlying psycopg2-like connection held by SQLAlchemy's proxy."""
+
+            def __init__(self) -> None:
+                self.autocommit = True
+                self.cursor_obj = FakeCursor(self)
+                self.rollback_called = False
+
+            def cursor(self, name: str | None = None) -> FakeCursor:
+                return self.cursor_obj
+
+            def rollback(self) -> None:
+                self.rollback_called = True
+
+        class FakePooledConnection:
+            """SQLAlchemy _ConnectionFairy-like wrapper around the driver."""
+
+            def __init__(self) -> None:
+                self.driver_connection = FakeDriverConnection()
+                self.closed = False
+
+            def __getattr__(self, name: str) -> object:
+                return getattr(self.driver_connection, name)
+
+            def cursor(self, *args: object, **kwargs: object) -> FakeCursor:
+                return self.driver_connection.cursor(*args, **kwargs)
+
+            def close(self) -> None:
+                self.closed = True
+
+        class FakeEngine:
+            """SQLAlchemy-like engine returning a pooled connection proxy."""
+
+            def __init__(self) -> None:
+                self.pooled_connection = FakePooledConnection()
+
+            def raw_connection(self) -> FakePooledConnection:
+                return self.pooled_connection
+
+        class FakeWrdsConnection:
+            """WRDS-like object carrying the SQLAlchemy engine."""
+
+            def __init__(self) -> None:
+                self.engine = FakeEngine()
+
+        wrds_connection = FakeWrdsConnection()
+
+        chunks = list(
+            stream_table(
+                wrds_connection=wrds_connection,
+                source_library="optionm_all",
+                source_table="opprcd2025",
+                columns=("secid",),
+                chunksize=2,
+            )
+        )
+
+        pooled_connection = wrds_connection.engine.pooled_connection
+        driver_connection = pooled_connection.driver_connection
+        self.assertEqual(chunks, [])
+        self.assertEqual(
+            driver_connection.cursor_obj.executed_sql,
+            'SELECT "secid" FROM "optionm_all"."opprcd2025"',
+        )
+        self.assertTrue(driver_connection.autocommit)
+        self.assertTrue(driver_connection.rollback_called)
+        self.assertTrue(driver_connection.cursor_obj.closed)
+        self.assertTrue(pooled_connection.closed)
+
 
 class IvydbClickhouseLoadTests(unittest.TestCase):
     """Check local load orchestration behavior with fake clients."""

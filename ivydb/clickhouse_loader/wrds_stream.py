@@ -105,13 +105,14 @@ def stream_table(
     # Use psycopg2's named cursor directly. A named cursor is PostgreSQL's
     # server-side cursor mechanism: ``execute`` declares the cursor on the
     # server, and each ``fetchmany`` pulls only the next bounded batch.
-    dbapi_connection = wrds_connection.engine.raw_connection()
-    original_autocommit = getattr(dbapi_connection, "autocommit", None)
+    pooled_connection = wrds_connection.engine.raw_connection()
+    driver_connection = _unwrap_driver_connection(pooled_connection)
+    original_autocommit = getattr(driver_connection, "autocommit", None)
     if original_autocommit is not None:
-        dbapi_connection.autocommit = False
+        driver_connection.autocommit = False
 
     cursor_name = f"ivydb_stream_{uuid4().hex}"
-    cursor = dbapi_connection.cursor(name=cursor_name)
+    cursor = driver_connection.cursor(name=cursor_name)
     cursor.itersize = chunksize
     try:
         cursor.execute(query)
@@ -128,7 +129,39 @@ def stream_table(
         # Close the cursor and roll back the read-only transaction whether the
         # stream finished, raised, or the consumer stopped early.
         cursor.close()
-        dbapi_connection.rollback()
+        driver_connection.rollback()
         if original_autocommit is not None:
-            dbapi_connection.autocommit = original_autocommit
-        dbapi_connection.close()
+            driver_connection.autocommit = original_autocommit
+        pooled_connection.close()
+
+
+def _unwrap_driver_connection(pooled_connection: object) -> object:
+    """Return the real DBAPI driver connection from SQLAlchemy's pool proxy.
+
+    SQLAlchemy ``Engine.raw_connection()`` returns a pooled proxy object. Reads
+    such as ``proxy.autocommit`` delegate to the underlying psycopg2 connection,
+    but assignment can land on the proxy itself. Named cursors require the
+    underlying psycopg2 connection to have ``autocommit = False``, so the loader
+    must mutate the driver connection directly.
+
+    Parameters
+    ----------
+    pooled_connection:
+        Object returned by ``wrds_connection.engine.raw_connection()``.
+
+    Returns
+    -------
+    object
+        The underlying driver connection when SQLAlchemy exposes it, otherwise
+        ``pooled_connection`` itself for simple fakes or direct DBAPI objects.
+    """
+
+    driver_connection = getattr(pooled_connection, "driver_connection", None)
+    if driver_connection is not None:
+        return driver_connection
+
+    dbapi_connection = getattr(pooled_connection, "dbapi_connection", None)
+    if dbapi_connection is not None:
+        return dbapi_connection
+
+    return pooled_connection

@@ -2509,3 +2509,86 @@ ValueError: vega must fit Decimal32(6) range -2147.483648 to 2147.483647
 2026-06-10 15:49:14 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Received WRDS chunk 305 from optionm_all.opprcd2025 with 100,000 row(s)
 2026-06-10 15:49:15 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Inserting ClickHouse batch 1 for optionm_all.opprcd2025 with 100,000 row(s)
 2026-06-10 15:49:16 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 30,500,000 rows from optionm_all.opprcd2025
+2026-06-10 15:49:18 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Received WRDS chunk 306 from optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:49:18 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Inserting ClickHouse batch 1 for optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:49:19 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 30,600,000 rows from optionm_all.opprcd2025
+2026-06-10 15:49:21 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Received WRDS chunk 307 from optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:49:21 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Inserting ClickHouse batch 1 for optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:49:22 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 30,700,000 rows from optionm_all.opprcd2025
+2026-06-10 15:49:23 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Received WRDS chunk 308 from optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:49:24 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Inserting ClickHouse batch 1 for optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:49:25 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 30,800,000 rows from optionm_all.opprcd2025
+2026-06-10 15:49:26 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Received WRDS chunk 309 from optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:49:27 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Inserting ClickHouse batch 1 for optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:49:28 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 30,900,000 rows from optionm_all.opprcd2025
+2026-06-10 15:49:29 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Received WRDS chunk 310 from optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:49:30 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Inserting ClickHouse batch 1 for optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:49:31 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 31,000,000 rows from optionm_all.opprcd2025
+2026-06-10 15:49:32 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Received WRDS chunk 311 from optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:49:33 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Inserting ClickHouse batch 1 for optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:49:34 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 31,100,000 rows from optionm_all.opprcd2025
+2026-06-10 15:49:35 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Received WRDS chunk 312 from optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:49:36 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Inserting ClickHouse batch 1 for optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:49:37 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 31,200,000 rows from optionm_all.opprcd2025
+2026-06-10 15:49:39 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Received WRDS chunk 313 from optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:49:39 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Inserting ClickHouse batch 1 for optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:49:40 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 31,300,000 rows from optionm_all.opprcd2025
+2026-06-10 15:49:42 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Received WRDS chunk 314 from optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:49:43 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Inserting ClickHouse batch 1 for optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:49:44 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 31,400,000 rows from optionm_all.opprcd2025
+2026-06-10 15:49:46 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Received WRDS chunk 315 from optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:49:46 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Inserting ClickHouse batch 1 for optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:49:47 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 31,500,000 rows from optionm_all.opprcd2025
+2026-06-10 15:49:49 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Received WRDS chunk 316 from optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:49:50 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Inserting ClickHouse batch 1 for optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:49:50 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 31,600,000 rows from optionm_all.opprcd2025
+2026-06-10 15:49:52 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Received WRDS chunk 317 from optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:49:53 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Inserting ClickHouse batch 1 for optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:49:54 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 31,700,000 rows from optionm_all.opprcd2025
+2026-06-10 15:49:56 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Received WRDS chunk 318 from optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:49:57 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Inserting ClickHouse batch 1 for optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:49:57 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 31,800,000 rows from optionm_all.opprcd2025
+2026-06-10 15:49:59 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Received WRDS chunk 319 from optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:50:00 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Inserting ClickHouse batch 1 for optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:50:01 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 31,900,000 rows from optionm_all.opprcd2025
+2026-06-10 15:50:03 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Received WRDS chunk 320 from optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:50:04 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Inserting ClickHouse batch 1 for optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:50:04 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 32,000,000 rows from optionm_all.opprcd2025
+2026-06-10 15:50:06 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Received WRDS chunk 321 from optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:50:07 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Inserting ClickHouse batch 1 for optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:50:08 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 32,100,000 rows from optionm_all.opprcd2025
+2026-06-10 15:50:10 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Received WRDS chunk 322 from optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:50:10 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Inserting ClickHouse batch 1 for optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:50:11 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 32,200,000 rows from optionm_all.opprcd2025
+2026-06-10 15:50:13 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Received WRDS chunk 323 from optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:50:13 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Inserting ClickHouse batch 1 for optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:50:14 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 32,300,000 rows from optionm_all.opprcd2025
+2026-06-10 15:50:16 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Received WRDS chunk 324 from optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:50:17 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Inserting ClickHouse batch 1 for optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:50:18 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 32,400,000 rows from optionm_all.opprcd2025
+2026-06-10 15:50:19 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Received WRDS chunk 325 from optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:50:20 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Inserting ClickHouse batch 1 for optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:50:21 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 32,500,000 rows from optionm_all.opprcd2025
+2026-06-10 15:50:22 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Received WRDS chunk 326 from optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:50:23 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Inserting ClickHouse batch 1 for optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:50:23 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 32,600,000 rows from optionm_all.opprcd2025
+2026-06-10 15:50:25 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Received WRDS chunk 327 from optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:50:26 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Inserting ClickHouse batch 1 for optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:50:26 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 32,700,000 rows from optionm_all.opprcd2025
+2026-06-10 15:50:28 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Received WRDS chunk 328 from optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:50:29 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Inserting ClickHouse batch 1 for optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:50:30 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 32,800,000 rows from optionm_all.opprcd2025
+2026-06-10 15:50:32 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Received WRDS chunk 329 from optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:50:32 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Inserting ClickHouse batch 1 for optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:50:33 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 32,900,000 rows from optionm_all.opprcd2025
+2026-06-10 15:50:34 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Received WRDS chunk 330 from optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:50:35 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Inserting ClickHouse batch 1 for optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:50:36 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 33,000,000 rows from optionm_all.opprcd2025
+2026-06-10 15:50:37 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Received WRDS chunk 331 from optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:50:38 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Inserting ClickHouse batch 1 for optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:50:39 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 33,100,000 rows from optionm_all.opprcd2025
+2026-06-10 15:50:40 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Received WRDS chunk 332 from optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:50:41 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Inserting ClickHouse batch 1 for optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:50:42 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 33,200,000 rows from optionm_all.opprcd2025
+2026-06-10 15:50:43 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Received WRDS chunk 333 from optionm_all.opprcd2025 with 100,000 row(s)
+2026-06-10 15:50:44 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Inserting ClickHouse batch 1 for optionm_all.opprcd2025 with 100,000 row(s)

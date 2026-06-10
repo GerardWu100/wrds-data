@@ -407,7 +407,7 @@ class IvydbClickhouseSchemaTests(unittest.TestCase):
         self.assertIn("`delta` Nullable(Decimal32(6)) CODEC(ZSTD(6))", fake_client.commands[0])
         self.assertIn("`gamma` Nullable(Decimal32(6)) CODEC(ZSTD(6))", fake_client.commands[0])
         self.assertIn("`vega` Nullable(Decimal32(6)) CODEC(ZSTD(6))", fake_client.commands[0])
-        self.assertIn("`theta` Nullable(Decimal64(6)) CODEC(ZSTD(6))", fake_client.commands[0])
+        self.assertIn("`theta` Nullable(Float32) CODEC(ZSTD(6))", fake_client.commands[0])
         self.assertIn("`strike_price` Nullable(Float32) CODEC(ZSTD(6))", fake_client.commands[0])
         self.assertNotIn("forward_price", fake_client.commands[0])
         self.assertNotIn("`root`", fake_client.commands[0])
@@ -1239,8 +1239,8 @@ class IvydbClickhouseLoadTests(unittest.TestCase):
         self.assertEqual(result.loc[0, "exdate"], date(2024, 3, 15))
         self.assertEqual(result.loc[1, "last_date"], date(2024, 1, 3))
 
-    def test_option_normalization_quantizes_greeks_to_decimal32_scale(self) -> None:
-        """IV and Greeks should be fixed-point decimals with six decimal places."""
+    def test_option_normalization_quantizes_iv_and_non_theta_greeks(self) -> None:
+        """IV and non-theta Greeks should preserve six-decimal fixed point."""
 
         from decimal import Decimal
 
@@ -1254,7 +1254,6 @@ class IvydbClickhouseLoadTests(unittest.TestCase):
                 "delta": [-0.500000],
                 "gamma": [0.001234],
                 "vega": [12.345678],
-                "theta": [-1477.853027],
             }
         )
 
@@ -1264,21 +1263,23 @@ class IvydbClickhouseLoadTests(unittest.TestCase):
         self.assertEqual(result.loc[0, "delta"], Decimal("-0.500000"))
         self.assertEqual(result.loc[0, "gamma"], Decimal("0.001234"))
         self.assertEqual(result.loc[0, "vega"], Decimal("12.345678"))
-        self.assertEqual(result.loc[0, "theta"], Decimal("-1477.853027"))
 
-    def test_option_normalization_allows_theta_outside_decimal32_range(self) -> None:
-        """Theta needs Decimal64(6) because recent rows can exceed Decimal32."""
+    def test_option_normalization_casts_theta_to_float32(self) -> None:
+        """Theta should use compact Float32 because Decimal32 range is too narrow."""
 
+        import numpy as np
         import pandas as pd
 
         from ivydb.clickhouse_loader.normalization import normalize_batch_for_clickhouse
 
         result = normalize_batch_for_clickhouse(
-            pd.DataFrame({"theta": [-2147.483649]}),
+            pd.DataFrame({"theta": [-2147.483649, None]}),
             self.option_price_plan(),
         )
 
-        self.assertEqual(str(result.loc[0, "theta"]), "-2147.483649")
+        self.assertEqual(str(result["theta"].dtype), "Float32")
+        self.assertTrue(np.isclose(result.loc[0, "theta"], -2147.483649))
+        self.assertTrue(pd.isna(result.loc[1, "theta"]))
 
     def test_option_normalization_rejects_non_theta_greeks_outside_decimal32_range(self) -> None:
         """Non-theta IV/Greek columns still use the narrower Decimal32(6)."""

@@ -63,14 +63,16 @@ contract and avoids breaking the insert if WRDS adds an unrelated column. For
 2023 sample the compressed footprint was dominated by implied volatility plus
 the four Greeks. These WRDS source columns are PostgreSQL `double precision`
 values, but the economic values are six-decimal model outputs. The loader
-therefore stores them as `Decimal32(6)`, a four-byte fixed-point decimal that
-keeps exactly six digits after the decimal point. For example, `0.123456` is
-stored as the scaled integer `123456`. This removes noisy `Float32` mantissa
-bits and improves compression while preserving the six-decimal WRDS value.
-`Decimal32(6)` can store values from `-2147.483648` through `2147.483647`; the
-normalization layer checks that range before insertion. Prices and `cfadj`
-remain `Float32`, because bid/offer prices already compressed well on tick
-grids and `cfadj` is not a meaningful storage driver. Size figures use
+therefore stores implied volatility, delta, gamma, and vega as `Decimal32(6)`,
+a four-byte fixed-point decimal that keeps exactly six digits after the decimal
+point. Theta uses `Decimal64(6)` because 2025 rows exceeded `Decimal32(6)`'s
+range. For example, `0.123456` is stored as the scaled integer `123456`. This
+removes noisy `Float32` mantissa bits and improves compression while preserving
+the six-decimal WRDS value. `Decimal32(6)` can store values from `-2147.483648`
+through `2147.483647`; `Decimal64(6)` has a much wider range. The normalization
+layer checks each decimal column's target range before insertion. Prices and
+`cfadj` remain `Float32`, because bid/offer prices already compressed well on
+tick grids and `cfadj` is not a meaningful storage driver. Size figures use
 `system.tables.total_bytes`; the per-column `system.columns` view under-reports
 for the loader user, which lacks the `system.parts` grant. Integer choices:
 `volume` and `open_interest` are `UInt32` (per-contract daily counts, not
@@ -280,6 +282,9 @@ See `ivydb/IVYDB_CLICKHOUSE_RUN_MANUAL.md` for batch-by-batch config examples.
   (`-1477.8530` to `37.9352`). Normalization now converts those columns to
   six-decimal `Decimal` values and rejects rows outside the `Decimal32(6)` range
   before ClickHouse insertion.
+- 2026-06-10: Widened `opprcd.theta` to `Decimal64(6)` after `opprcd2025`
+  produced theta values outside `Decimal32(6)`'s `-2147.483648` to
+  `2147.483647` range. Other IV/Greek columns remain `Decimal32(6)`.
 - 2026-06-10: Added explicit first-WRDS-chunk progress logging and an
   `interrupted` audit status so manual stops can be distinguished from a quiet
   first chunk and cleaned up with `clear-failed`.

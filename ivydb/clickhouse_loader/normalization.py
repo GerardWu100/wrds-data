@@ -29,6 +29,18 @@ class SignedColumnRule:
     maximum: int
 
 
+@dataclass(frozen=True)
+class DecimalColumnRule:
+    """Target fixed-point decimal type for one six-decimal model column."""
+
+    column_name: str
+    type_name: str
+    scale: int
+    quantum: Decimal
+    minimum: Decimal
+    maximum: Decimal
+
+
 UINT8_MAX = (2**8) - 1
 INT32_MIN = -(2**31)
 INT32_MAX = (2**31) - 1
@@ -85,16 +97,53 @@ OPTION_ENUM_VALUES = {
     "ss_flag": {"0", "1", "E"},
 }
 OPTION_BINARY_FLAG_COLUMNS = ("am_settlement",)
-OPTION_DECIMAL32_SCALE = 6
-OPTION_DECIMAL32_QUANTUM = Decimal("0.000001")
+OPTION_DECIMAL_SCALE = 6
+OPTION_DECIMAL_QUANTUM = Decimal("0.000001")
 OPTION_DECIMAL32_MAX = Decimal("2147.483647")
 OPTION_DECIMAL32_MIN = Decimal("-2147.483648")
-OPTION_DECIMAL32_COLUMNS = (
-    "impl_volatility",
-    "delta",
-    "gamma",
-    "vega",
-    "theta",
+OPTION_DECIMAL64_MAX = Decimal("9223372036854.775807")
+OPTION_DECIMAL64_MIN = Decimal("-9223372036854.775808")
+OPTION_DECIMAL_RULES = (
+    DecimalColumnRule(
+        "impl_volatility",
+        "Decimal32",
+        OPTION_DECIMAL_SCALE,
+        OPTION_DECIMAL_QUANTUM,
+        OPTION_DECIMAL32_MIN,
+        OPTION_DECIMAL32_MAX,
+    ),
+    DecimalColumnRule(
+        "delta",
+        "Decimal32",
+        OPTION_DECIMAL_SCALE,
+        OPTION_DECIMAL_QUANTUM,
+        OPTION_DECIMAL32_MIN,
+        OPTION_DECIMAL32_MAX,
+    ),
+    DecimalColumnRule(
+        "gamma",
+        "Decimal32",
+        OPTION_DECIMAL_SCALE,
+        OPTION_DECIMAL_QUANTUM,
+        OPTION_DECIMAL32_MIN,
+        OPTION_DECIMAL32_MAX,
+    ),
+    DecimalColumnRule(
+        "vega",
+        "Decimal32",
+        OPTION_DECIMAL_SCALE,
+        OPTION_DECIMAL_QUANTUM,
+        OPTION_DECIMAL32_MIN,
+        OPTION_DECIMAL32_MAX,
+    ),
+    DecimalColumnRule(
+        "theta",
+        "Decimal64",
+        OPTION_DECIMAL_SCALE,
+        OPTION_DECIMAL_QUANTUM,
+        OPTION_DECIMAL64_MIN,
+        OPTION_DECIMAL64_MAX,
+    ),
 )
 
 
@@ -128,35 +177,35 @@ def normalize_batch_for_clickhouse(batch: pd.DataFrame, table: TablePlan) -> pd.
     if table.source_prefix == "opprcd":
         for column_name in OPTION_BINARY_FLAG_COLUMNS:
             _validate_nullable_binary_flag(normalized, column_name)
-        for column_name in OPTION_DECIMAL32_COLUMNS:
-            _cast_nullable_decimal32_scaled(normalized, column_name)
+        for rule in OPTION_DECIMAL_RULES:
+            _cast_nullable_decimal_scaled(normalized, rule)
     for column_name in date_columns:
         _cast_nullable_date(normalized, column_name)
     return normalized
 
 
-def _cast_nullable_decimal32_scaled(dataframe: pd.DataFrame, column_name: str) -> None:
-    """Convert one nullable six-decimal option model column to ``Decimal32(6)``.
+def _cast_nullable_decimal_scaled(dataframe: pd.DataFrame, rule: DecimalColumnRule) -> None:
+    """Convert one nullable six-decimal option model column to fixed point.
 
     Parameters
     ----------
     dataframe:
         Incoming WRDS chunk. The column is modified in place because the caller
         already owns a copied DataFrame.
-    column_name:
-        Implied-volatility or Greek column whose ClickHouse target type is
-        ``Nullable(Decimal32(6))``.
+    rule:
+        Decimal type, scale, and range expected by the curated ClickHouse DDL.
 
     Notes
     -----
-    ClickHouse ``Decimal32(6)`` stores a four-byte signed integer scaled by
-    1,000,000. Its valid value range is -2147.483648 through 2147.483647. The
-    WRDS source exposes these columns as PostgreSQL ``double precision``, but
-    the values are six-decimal model outputs. Converting through ``str(value)``
-    avoids carrying binary floating-point artifacts such as
-    ``0.12345600128173828`` into the fixed-point representation.
+    The WRDS source exposes these columns as PostgreSQL ``double precision``,
+    but the values are six-decimal model outputs. Converting through
+    ``str(value)`` avoids carrying binary floating-point artifacts such as
+    ``0.12345600128173828`` into the fixed-point representation. Most columns
+    fit ``Decimal32(6)``; theta uses ``Decimal64(6)`` because recent rows can
+    exceed the Decimal32 range.
     """
 
+    column_name = rule.column_name
     if column_name not in dataframe.columns:
         return
 
@@ -167,16 +216,17 @@ def _cast_nullable_decimal32_scaled(dataframe: pd.DataFrame, column_name: str) -
             continue
 
         try:
-            decimal_value = Decimal(str(raw_value)).quantize(OPTION_DECIMAL32_QUANTUM)
+            decimal_value = Decimal(str(raw_value)).quantize(rule.quantum)
         except (InvalidOperation, ValueError) as error:
             raise ValueError(
-                f"{column_name} must contain values convertible to Decimal32({OPTION_DECIMAL32_SCALE})"
+                f"{column_name} must contain values convertible to "
+                f"{rule.type_name}({rule.scale})"
             ) from error
 
-        if decimal_value < OPTION_DECIMAL32_MIN or decimal_value > OPTION_DECIMAL32_MAX:
+        if decimal_value < rule.minimum or decimal_value > rule.maximum:
             raise ValueError(
-                f"{column_name} must fit Decimal32({OPTION_DECIMAL32_SCALE}) range "
-                f"{OPTION_DECIMAL32_MIN} to {OPTION_DECIMAL32_MAX}"
+                f"{column_name} must fit {rule.type_name}({rule.scale}) range "
+                f"{rule.minimum} to {rule.maximum}"
             )
 
         converted_values.append(decimal_value)

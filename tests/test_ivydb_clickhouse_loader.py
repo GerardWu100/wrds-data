@@ -407,7 +407,7 @@ class IvydbClickhouseSchemaTests(unittest.TestCase):
         self.assertIn("`delta` Nullable(Decimal32(6)) CODEC(ZSTD(6))", fake_client.commands[0])
         self.assertIn("`gamma` Nullable(Decimal32(6)) CODEC(ZSTD(6))", fake_client.commands[0])
         self.assertIn("`vega` Nullable(Decimal32(6)) CODEC(ZSTD(6))", fake_client.commands[0])
-        self.assertIn("`theta` Nullable(Decimal32(6)) CODEC(ZSTD(6))", fake_client.commands[0])
+        self.assertIn("`theta` Nullable(Decimal64(6)) CODEC(ZSTD(6))", fake_client.commands[0])
         self.assertIn("`strike_price` Nullable(Float32) CODEC(ZSTD(6))", fake_client.commands[0])
         self.assertNotIn("forward_price", fake_client.commands[0])
         self.assertNotIn("`root`", fake_client.commands[0])
@@ -1266,16 +1266,30 @@ class IvydbClickhouseLoadTests(unittest.TestCase):
         self.assertEqual(result.loc[0, "vega"], Decimal("12.345678"))
         self.assertEqual(result.loc[0, "theta"], Decimal("-1477.853027"))
 
-    def test_option_normalization_rejects_greeks_outside_decimal32_range(self) -> None:
-        """Decimal32(6) cannot store values with magnitude above about 2147."""
+    def test_option_normalization_allows_theta_outside_decimal32_range(self) -> None:
+        """Theta needs Decimal64(6) because recent rows can exceed Decimal32."""
 
         import pandas as pd
 
         from ivydb.clickhouse_loader.normalization import normalize_batch_for_clickhouse
 
-        with self.assertRaisesRegex(ValueError, "theta.*Decimal32\\(6\\)"):
+        result = normalize_batch_for_clickhouse(
+            pd.DataFrame({"theta": [-2147.483649]}),
+            self.option_price_plan(),
+        )
+
+        self.assertEqual(str(result.loc[0, "theta"]), "-2147.483649")
+
+    def test_option_normalization_rejects_non_theta_greeks_outside_decimal32_range(self) -> None:
+        """Non-theta IV/Greek columns still use the narrower Decimal32(6)."""
+
+        import pandas as pd
+
+        from ivydb.clickhouse_loader.normalization import normalize_batch_for_clickhouse
+
+        with self.assertRaisesRegex(ValueError, "vega.*Decimal32\\(6\\)"):
             normalize_batch_for_clickhouse(
-                pd.DataFrame({"theta": [-2147.483649]}),
+                pd.DataFrame({"vega": [2147.483648]}),
                 self.option_price_plan(),
             )
 

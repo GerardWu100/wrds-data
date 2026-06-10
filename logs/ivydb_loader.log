@@ -1078,3 +1078,24 @@ Traceback (most recent call last):
     cursor.execute(query)
     ~~~~~~~~~~~~~~^^^^^^^
 psycopg2.ProgrammingError: can't use a named cursor outside of transactions
+2026-06-10 14:50:55 UTC INFO ivydb.clickhouse_loader.cli: Writing run log to /home/ai4000/projects/one-time-projects/wrds-data/logs/ivydb_loader.log
+2026-06-10 14:50:55 UTC INFO ivydb.clickhouse_loader.cli: Command=load target_database=ivydb tables=1
+2026-06-10 14:50:57 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Starting IvyDB load for 1 source table(s); local audit file: /home/ai4000/projects/one-time-projects/wrds-data/logs/ivydb_load_audit.jsonl
+2026-06-10 14:50:57 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loading optionm_all.opprcd2025 -> opprcd2025
+2026-06-10 14:50:57 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Streaming optionm_all.opprcd2025 from WRDS through a server-side cursor; the first chunk should arrive promptly and memory stays bounded per chunk
+2026-06-10 14:50:57 UTC ERROR ivydb.clickhouse_loader.load_to_clickhouse: Failed optionm_all.opprcd2025 -> opprcd2025 after 0 loaded row(s)
+Traceback (most recent call last):
+  File "/home/ai4000/projects/one-time-projects/wrds-data/ivydb/clickhouse_loader/load_to_clickhouse.py", line 122, in _load_one_table_direct
+    for chunk_number, chunk in enumerate(
+                               ~~~~~~~~~^
+        stream_table(
+        ^^^^^^^^^^^^^
+    ...<6 lines>...
+        start=1,
+        ^^^^^^^^
+    ):
+    ^
+  File "/home/ai4000/projects/one-time-projects/wrds-data/ivydb/clickhouse_loader/wrds_stream.py", line 119, in stream_table
+    result_columns = [description[0] for description in cursor.description]
+                                                        ^^^^^^^^^^^^^^^^^^
+TypeError: 'NoneType' object is not iterable

@@ -74,7 +74,7 @@ def clear_failed_tables(
     cleared_tables: list[str] = []
     for table in table_plan:
         status = _local_audit_latest_status(config.loader.audit_log_path, table)
-        if status not in {"failed", "started"}:
+        if status not in {"failed", "interrupted", "started"}:
             LOGGER.info(
                 "Leaving %s unchanged during cleanup because its latest audit status is %s",
                 table.source_table,
@@ -113,18 +113,44 @@ def _load_one_table_direct(
             table.source_table,
             table.target_table,
         )
-        for chunk in stream_table(
-            wrds_connection=wrds_connection,
-            source_library=table.source_library,
-            source_table=table.source_table,
-            columns=table.source_columns,
-            chunksize=config.loader.wrds_batch_size,
+        LOGGER.info(
+            "Waiting for first WRDS chunk from %s.%s; large yearly option tables "
+            "can be quiet here while WRDS prepares the cursor",
+            table.source_library,
+            table.source_table,
+        )
+        for chunk_number, chunk in enumerate(
+            stream_table(
+                wrds_connection=wrds_connection,
+                source_library=table.source_library,
+                source_table=table.source_table,
+                columns=table.source_columns,
+                chunksize=config.loader.wrds_batch_size,
+            ),
+            start=1,
         ):
+            LOGGER.info(
+                "Received WRDS chunk %s from %s.%s with %s row(s)",
+                chunk_number,
+                table.source_library,
+                table.source_table,
+                f"{len(chunk):,}",
+            )
             normalized_chunk = normalize_batch_for_clickhouse(chunk, table)
-            for insert_batch in split_dataframe_for_insert(
-                normalized_chunk,
-                config.loader.clickhouse_insert_size,
+            for insert_batch_number, insert_batch in enumerate(
+                split_dataframe_for_insert(
+                    normalized_chunk,
+                    config.loader.clickhouse_insert_size,
+                ),
+                start=1,
             ):
+                LOGGER.info(
+                    "Inserting ClickHouse batch %s for %s.%s with %s row(s)",
+                    insert_batch_number,
+                    table.source_library,
+                    table.source_table,
+                    f"{len(insert_batch):,}",
+                )
                 clickhouse_client.insert_df(
                     table=table.target_table,
                     df=insert_batch,
@@ -146,6 +172,23 @@ def _load_one_table_direct(
             f"{rows_loaded:,}",
         )
         return LoadResult(table.source_table, table.target_table, rows_loaded)
+    except KeyboardInterrupt:
+        _write_audit_row(
+            config,
+            table,
+            rows_loaded,
+            started_at,
+            "interrupted",
+            "KeyboardInterrupt",
+        )
+        LOGGER.warning(
+            "Interrupted %s.%s -> %s after %s loaded row(s)",
+            table.source_library,
+            table.source_table,
+            table.target_table,
+            f"{rows_loaded:,}",
+        )
+        raise
     except Exception as exc:
         _write_audit_row(config, table, rows_loaded, started_at, "failed", str(exc))
         LOGGER.exception(

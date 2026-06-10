@@ -16,7 +16,8 @@ Optional commands:
 
 - `validate` runs row-count and quality checks in ClickHouse.
 - `clear-failed` clears only incomplete direct-load destinations recorded as
-  started or failed in the local audit log so they can be reloaded.
+  started, interrupted, or failed in the local audit log so they can be
+  reloaded.
 - `drop-tables` is a dangerous manual reset that drops the ClickHouse tables
   selected in config after two exact confirmations.
 
@@ -82,11 +83,15 @@ Dropping the IV/Greeks columns entirely (≈ 19% of current) remains an
 available research decision but is not done by default.
 
 Operational resume state is not stored in ClickHouse. The loader writes
-started, completed, failed, and cleared source-table events to the local
-JSON-lines file `logs/ivydb_load_audit.jsonl`. Set `resume = true` in
+started, completed, interrupted, failed, and cleared source-table events to the
+local JSON-lines file `logs/ivydb_load_audit.jsonl`. Set `resume = true` in
 `[loader]` to skip source tables whose latest matching audit event is complete.
-A newer started or failed event for the same source and target keeps the source
-eligible for deliberate cleanup and repair.
+A newer started, interrupted, or failed event for the same source and target
+keeps the source eligible for deliberate cleanup and repair. For large yearly
+option-price tables, the first WRDS chunk can take much longer than later
+chunks because WRDS has to prepare the PostgreSQL cursor before streaming rows;
+the loader logs this first-chunk wait explicitly so a quiet terminal is not
+mistaken for a dead process.
 
 Historical IvyDB tables are append-once loads. The loader refuses to insert
 into a destination that already has rows for the selected source. If one source
@@ -180,7 +185,8 @@ table.
 
 - Streams WRDS chunks directly into pre-created final tables, writes local audit
   events, and uses the latest matching audit event for resume and cleanup
-  decisions.
+  decisions. It logs before waiting on the first WRDS chunk, after each chunk is
+  received, and before each ClickHouse insert batch.
 
 `validation.py`
 
@@ -252,3 +258,6 @@ See `ivydb/IVYDB_CLICKHOUSE_RUN_MANUAL.md` for batch-by-batch config examples.
   (`-1477.8530` to `37.9352`). Normalization now converts those columns to
   six-decimal `Decimal` values and rejects rows outside the `Decimal32(6)` range
   before ClickHouse insertion.
+- 2026-06-10: Added explicit first-WRDS-chunk progress logging and an
+  `interrupted` audit status so manual stops can be distinguished from a quiet
+  first chunk and cleaned up with `clear-failed`.

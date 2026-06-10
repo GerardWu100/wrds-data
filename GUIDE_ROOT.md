@@ -101,9 +101,9 @@ Subfolder overview:
   stores `opprcd` implied volatility and Greeks as six-decimal `Decimal32`
   values, and exposes `clear-failed` for deliberate recovery after a failed or
   interrupted append-once load. Loading remains fail-fast: a failed source stops
-  the selected batch; cleanup later removes only sources recorded as started or
-  failed. Validation reports cover row counts, date ranges, key nulls,
-  duplicate option keys, and CRSP link quality.
+  the selected batch; cleanup later removes only sources recorded as started,
+  interrupted, or failed. Validation reports cover row counts, date ranges, key
+  nulls, duplicate option keys, and CRSP link quality.
 - Cross-reference: See `ivydb/GUIDE_ivydb.md`.
 
 `library_samples/`

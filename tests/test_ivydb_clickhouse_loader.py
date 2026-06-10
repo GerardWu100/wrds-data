@@ -842,6 +842,48 @@ class IvydbClickhouseLoadTests(unittest.TestCase):
         self.assertEqual(statuses, ["started", "failed"])
         mocked_stream.assert_called_once()
 
+    def test_interrupted_load_records_interrupted_audit_status(self) -> None:
+        """A manual or session interruption should leave a clear audit status."""
+
+        import pandas as pd
+
+        from ivydb.clickhouse_loader.load_to_clickhouse import load_tables
+
+        table = self.option_price_plan()
+
+        class InterruptedClient(self.RecordingClient):
+            """Raise ``KeyboardInterrupt`` during the first ClickHouse insert."""
+
+            def query(self, sql: str) -> object:
+                if "system.tables" in sql:
+                    return IvydbClickhouseLoadTests.QueryResult(1)
+                return IvydbClickhouseLoadTests.QueryResult(0)
+
+            def insert_df(self, table: str, df: object, database: str) -> None:
+                raise KeyboardInterrupt()
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            audit_path = Path(tmpdir) / "audit.jsonl"
+            config = self.config_with_audit_path(audit_path)
+            with patch(
+                "ivydb.clickhouse_loader.load_to_clickhouse.stream_table",
+                return_value=[pd.DataFrame({"secid": [101.0], "volume": [1.0]})],
+            ):
+                with self.assertRaises(KeyboardInterrupt):
+                    load_tables(
+                        config=config,
+                        wrds_connection=object(),
+                        clickhouse_client=InterruptedClient(),
+                        table_plan=[table],
+                    )
+
+            statuses = [
+                json.loads(line)["status"]
+                for line in audit_path.read_text(encoding="utf-8").splitlines()
+            ]
+
+        self.assertEqual(statuses, ["started", "interrupted"])
+
     def test_option_normalization_preserves_null_categories_and_casts_counts(self) -> None:
         """Nullable categories remain missing while integer-like fields are cast."""
 
@@ -1197,6 +1239,34 @@ class IvydbClickhouseLoadTests(unittest.TestCase):
                         "source_table": table.source_table,
                         "target_table": table.target_table,
                         "status": "started",
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            config = self.config_with_audit_path(audit_path)
+            client = self.recording_client()
+
+            cleared = clear_failed_tables(config, client, [table])
+
+        self.assertEqual(cleared, ["opprcd2024"])
+        self.assertIn("TRUNCATE TABLE `ivydb`.`opprcd2024`", client.commands)
+
+    def test_clear_failed_clears_interrupted_source(self) -> None:
+        """Cleanup should treat explicit interrupted audit rows as incomplete."""
+
+        from ivydb.clickhouse_loader.load_to_clickhouse import clear_failed_tables
+
+        table = self.option_price_plan()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            audit_path = Path(tmpdir) / "audit.jsonl"
+            audit_path.write_text(
+                json.dumps(
+                    {
+                        "source_library": table.source_library,
+                        "source_table": table.source_table,
+                        "target_table": table.target_table,
+                        "status": "interrupted",
                     }
                 )
                 + "\n",

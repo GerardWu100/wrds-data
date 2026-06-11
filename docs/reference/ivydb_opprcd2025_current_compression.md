@@ -2,7 +2,7 @@
 
 This note records the current live ClickHouse storage layout for
 `ivydb.opprcd2025` after the 2025 OptionMetrics IvyDB US option-price table was
-re-downloaded and after the 2026-06-11 lossless `T64` codec metadata update.
+re-downloaded with the current compression settings.
 
 Measurement date: 2026-06-11
 
@@ -37,12 +37,11 @@ Higher is better for storage.
 because it includes table storage overhead beyond the raw compressed column
 streams.
 
-On 2026-06-11, the live table metadata was changed to use `T64, ZSTD(12)` for
-`last_date`, `volume`, `open_interest`, `impl_volatility`, `delta`, and
-`gamma`. The byte counts below still reflect the existing stored parts at the
-time of measurement. ClickHouse codec metadata changes are lossless, but
-existing parts must be rewritten or the table must be reloaded before the
-benchmarked storage savings fully appear in `data_compressed_bytes`.
+The future loader DDL now uses `T64, ZSTD(12)` for `last_date`, `volume`,
+`open_interest`, `impl_volatility`, `delta`, and `gamma`. This live table was
+left on its previously loaded codecs so it can be replaced by an explicit
+rerun. The byte counts below describe the existing loaded table at the time of
+measurement.
 
 ## Current Column Compression
 
@@ -53,16 +52,16 @@ benchmarked storage savings fully appear in `data_compressed_bytes`.
 | 3 | `symbol` | `Nullable(String)` | `CODEC(ZSTD(12))` | 84.83 | 6526.71 | 76.94x | 0.3357 | 1.73% |
 | 4 | `symbol_flag` | `Nullable(Enum8('0' = 1, '1' = 2))` | `CODEC(ZSTD(12))` | 0.34 | 504.60 | 1479.10x | 0.0014 | 0.01% |
 | 5 | `exdate` | `Nullable(Date32)` | `CODEC(DoubleDelta, ZSTD(12))` | 21.09 | 1261.51 | 59.81x | 0.0835 | 0.43% |
-| 6 | `last_date` | `Nullable(Date32)` | `CODEC(T64, ZSTD(12))` | 220.78 | 1261.51 | 5.71x | 0.8738 | 4.52% |
+| 6 | `last_date` | `Nullable(Date32)` | `CODEC(DoubleDelta, ZSTD(12))` | 220.78 | 1261.51 | 5.71x | 0.8738 | 4.52% |
 | 7 | `cp_flag` | `Nullable(Enum8('C' = 1, 'P' = 2))` | `CODEC(ZSTD(12))` | 3.28 | 504.60 | 153.97x | 0.0130 | 0.07% |
 | 8 | `strike_price` | `Nullable(Float32)` | `CODEC(ZSTD(12))` | 16.72 | 1261.51 | 75.43x | 0.0662 | 0.34% |
 | 9 | `best_bid` | `Nullable(Float32)` | `CODEC(ZSTD(12))` | 366.10 | 1261.51 | 3.45x | 1.4489 | 7.49% |
 | 10 | `best_offer` | `Nullable(Float32)` | `CODEC(ZSTD(12))` | 399.47 | 1261.51 | 3.16x | 1.5810 | 8.17% |
-| 11 | `volume` | `Nullable(UInt32)` | `CODEC(T64, ZSTD(12))` | 75.97 | 1261.51 | 16.61x | 0.3007 | 1.55% |
-| 12 | `open_interest` | `Nullable(UInt32)` | `CODEC(T64, ZSTD(12))` | 101.13 | 1261.51 | 12.47x | 0.4003 | 2.07% |
-| 13 | `impl_volatility` | `Nullable(Decimal(9, 6))` | `CODEC(T64, ZSTD(12))` | 695.23 | 1261.51 | 1.81x | 2.7515 | 14.22% |
-| 14 | `delta` | `Nullable(Decimal(9, 6))` | `CODEC(T64, ZSTD(12))` | 723.63 | 1261.51 | 1.74x | 2.8639 | 14.80% |
-| 15 | `gamma` | `Nullable(Decimal(9, 6))` | `CODEC(T64, ZSTD(12))` | 555.10 | 1261.51 | 2.27x | 2.1969 | 11.35% |
+| 11 | `volume` | `Nullable(UInt32)` | `CODEC(ZSTD(12))` | 75.97 | 1261.51 | 16.61x | 0.3007 | 1.55% |
+| 12 | `open_interest` | `Nullable(UInt32)` | `CODEC(ZSTD(12))` | 101.13 | 1261.51 | 12.47x | 0.4003 | 2.07% |
+| 13 | `impl_volatility` | `Nullable(Decimal(9, 6))` | `CODEC(ZSTD(12))` | 695.23 | 1261.51 | 1.81x | 2.7515 | 14.22% |
+| 14 | `delta` | `Nullable(Decimal(9, 6))` | `CODEC(ZSTD(12))` | 723.63 | 1261.51 | 1.74x | 2.8639 | 14.80% |
+| 15 | `gamma` | `Nullable(Decimal(9, 6))` | `CODEC(ZSTD(12))` | 555.10 | 1261.51 | 2.27x | 2.1969 | 11.35% |
 | 16 | `vega` | `Nullable(Float32)` | `CODEC(ZSTD(12))` | 803.32 | 1261.51 | 1.57x | 3.1793 | 16.43% |
 | 17 | `theta` | `Nullable(Float32)` | `CODEC(ZSTD(12))` | 801.43 | 1261.51 | 1.57x | 3.1718 | 16.39% |
 | 18 | `optionid` | `Nullable(UInt64)` | `CODEC(Delta(8), ZSTD(12))` | 12.68 | 2270.72 | 179.10x | 0.0502 | 0.26% |

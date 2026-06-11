@@ -113,6 +113,7 @@ Changes tested but not recommended:
 
 | Column | Tested Codec | January Change | Reason |
 |---|---|---:|---|
+| `secid` | `Delta, ZSTD(12)` | +34.64% | Worse than plain `ZSTD(12)` |
 | `open_interest` | `T64, ZSTD(12)` | -1.06% | Too small to matter |
 | `optionid` | `T64, ZSTD(12)` | +353.14% | Much worse than `Delta(8), ZSTD(12)` |
 | `symbol_flag` | `T64, ZSTD(12)` | +32.43% | Worse than plain `ZSTD(12)` |

@@ -14,13 +14,20 @@ from ivydb.clickhouse_loader.config import AppConfig, default_config
 #   outside Decimal32(6)'s +/-2147.483647 range, and Decimal64(6) doubles raw
 #   width for model outputs where exact six-decimal storage is not worth the
 #   size cost. The loader validates each decimal column's target range at the
-#   chunk boundary before insertion.
+#   chunk boundary before insertion. IV, delta, and gamma use T64 before ZSTD
+#   because a 31.1M-row January 2025 shadow-table benchmark cut their compressed
+#   bytes by roughly 15-19% without changing values.
 #   Prices and cfadj remain Float32. Historical bid/offer prices often sit on
 #   binary-exact tick grids and compressed worse as Decimal in local tests, while
 #   cfadj is a low-footprint adjustment factor where Decimal friction is not
 #   worth the negligible savings.
 # - volume / open_interest are per-contract daily counts (observed max ~52k);
-#   UInt32 is the correct width and UInt64 only wasted space.
+#   UInt32 is the correct width and UInt64 only wasted space. volume and
+#   open_interest use T64 before ZSTD. The open_interest gain was only about 1%
+#   in the January 2025 benchmark, but it is lossless and the user explicitly
+#   chose to keep that small saving.
+# - last_date uses T64 before ZSTD because it halved compressed bytes versus
+#   DoubleDelta in the same January 2025 shadow-table benchmark.
 # - am_settlement is a 0/1 flag, so UInt8 is sufficient.
 # - contract_size is Int32 rather than UInt32 because WRDS uses -99 as an
 #   OptionMetrics missing-value sentinel in historical opprcd rows.
@@ -42,16 +49,16 @@ CREATE TABLE IF NOT EXISTS `{database}`.`{table}` (
     `symbol` Nullable(String) CODEC(ZSTD(12)),
     `symbol_flag` Nullable(Enum8('0' = 1, '1' = 2)) CODEC(ZSTD(12)),
     `exdate` Nullable(Date32) CODEC(DoubleDelta, ZSTD(12)),
-    `last_date` Nullable(Date32) CODEC(DoubleDelta, ZSTD(12)),
+    `last_date` Nullable(Date32) CODEC(T64, ZSTD(12)),
     `cp_flag` Nullable(Enum8('C' = 1, 'P' = 2)) CODEC(ZSTD(12)),
     `strike_price` Nullable(Float32) CODEC(ZSTD(12)),
     `best_bid` Nullable(Float32) CODEC(ZSTD(12)),
     `best_offer` Nullable(Float32) CODEC(ZSTD(12)),
-    `volume` Nullable(UInt32) CODEC(ZSTD(12)),
-    `open_interest` Nullable(UInt32) CODEC(ZSTD(12)),
-    `impl_volatility` Nullable(Decimal32(6)) CODEC(ZSTD(12)),
-    `delta` Nullable(Decimal32(6)) CODEC(ZSTD(12)),
-    `gamma` Nullable(Decimal32(6)) CODEC(ZSTD(12)),
+    `volume` Nullable(UInt32) CODEC(T64, ZSTD(12)),
+    `open_interest` Nullable(UInt32) CODEC(T64, ZSTD(12)),
+    `impl_volatility` Nullable(Decimal32(6)) CODEC(T64, ZSTD(12)),
+    `delta` Nullable(Decimal32(6)) CODEC(T64, ZSTD(12)),
+    `gamma` Nullable(Decimal32(6)) CODEC(T64, ZSTD(12)),
     `vega` Nullable(Float32) CODEC(ZSTD(12)),
     `theta` Nullable(Float32) CODEC(ZSTD(12)),
     `optionid` Nullable(UInt64) CODEC(Delta, ZSTD(12)),

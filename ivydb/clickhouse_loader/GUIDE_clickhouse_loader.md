@@ -67,18 +67,24 @@ therefore stores implied volatility, delta, and gamma as `Decimal32(6)`, a
 four-byte fixed-point decimal that keeps exactly six digits after the decimal
 point. For example, `0.123456` is stored as the scaled integer `123456`. This
 removes noisy `Float32` mantissa bits and improves compression while preserving
-the six-decimal WRDS value where the observed range fits. Vega and theta use
-`Float32`: recent 2025 rows exceeded `Decimal32(6)`'s `-2147.483648` to
-`2147.483647` range, and `Decimal64(6)` would double their raw width for model
-outputs where exact six-decimal storage is not worth the size cost. The
-normalization layer checks each decimal column's target range before insertion.
+the six-decimal WRDS value where the observed range fits. They use `T64` before
+`ZSTD(12)` because a January 2025 shadow-table benchmark showed lossless
+compressed-byte reductions of roughly 15-19% for those three scaled-integer
+columns. Vega and theta use `Float32`: recent 2025 rows exceeded
+`Decimal32(6)`'s `-2147.483648` to `2147.483647` range, and `Decimal64(6)`
+would double their raw width for model outputs where exact six-decimal storage
+is not worth the size cost. The normalization layer checks each decimal
+column's target range before insertion.
 Prices and `cfadj` remain `Float32`, because
 bid/offer prices already compressed well on tick grids and `cfadj` is not a
 meaningful storage driver. Size figures use
 `system.tables.total_bytes`; the per-column `system.columns` view under-reports
 for the loader user, which lacks the `system.parts` grant. Integer choices:
 `volume` and `open_interest` are `UInt32` (per-contract daily counts, not
-`UInt64`), `am_settlement` is `UInt8` with an explicit 0/1 boundary check,
+`UInt64`) with `T64` before `ZSTD(12)`; the `open_interest` saving was only
+about 1% on the January 2025 benchmark but is kept because it is lossless.
+`last_date` also uses `T64` because it was much smaller than `DoubleDelta` on
+the same slice. `am_settlement` is `UInt8` with an explicit 0/1 boundary check,
 `contract_size` is `Int32` because WRDS uses `-99` as an OptionMetrics
 missing-value sentinel, and `optionid` adds a `Delta` codec because it helps
 recent dense years even though it can hurt sparse early years. `symbol` is a
@@ -318,6 +324,11 @@ See `ivydb/IVYDB_CLICKHOUSE_RUN_MANUAL.md` for batch-by-batch config examples.
 - 2026-06-10: Fixed validation required-key SQL so enum columns such as
   `cp_flag` are checked with `IS NULL` only. Comparing a ClickHouse enum to an
   empty string raises `UNKNOWN_ELEMENT_OF_ENUM`.
+- 2026-06-11: Switched future `opprcd` DDL to use lossless
+  `T64, ZSTD(12)` codecs for `impl_volatility`, `delta`, `gamma`,
+  `last_date`, `volume`, and `open_interest` after January 2025 shadow-table
+  benchmarks showed storage wins. `open_interest` was kept despite only about a
+  1% gain because the change is lossless and explicitly requested.
 - 2026-06-11: Changed curated IvyDB ClickHouse DDL from `ZSTD(6)` to
   `ZSTD(12)` across option-price, underlying-price, and reference/link tables.
   Added `logs/ivydb_year_summary.log` so each completed yearly source appends a

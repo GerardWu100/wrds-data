@@ -9554,3 +9554,15 @@ ValueError: vega must fit Decimal32(6) range -2147.483648 to 2147.483647
 2026-06-11 03:42:57 UTC INFO ivydb.clickhouse_loader.cli: Writing run log to /home/ai4000/projects/one-time-projects/wrds-data/logs/ivydb_loader.log
 2026-06-11 03:44:06 UTC INFO ivydb.clickhouse_loader.cli: Writing run log to /home/ai4000/projects/one-time-projects/wrds-data/logs/ivydb_loader.log
 2026-06-11 03:47:11 UTC INFO ivydb.clickhouse_loader.cli: Writing run log to /home/ai4000/projects/one-time-projects/wrds-data/logs/ivydb_loader.log
+2026-06-11 13:11:02 UTC INFO ivydb.clickhouse_loader.cli: Writing run log to /home/ai4000/projects/one-time-projects/wrds-data/logs/ivydb_loader.log
+2026-06-11 13:11:02 UTC INFO ivydb.clickhouse_loader.cli: Command=validate target_database=ivydb tables=10
+2026-06-11 13:11:09 UTC INFO ivydb.clickhouse_loader.cli: Writing run log to /home/ai4000/projects/one-time-projects/wrds-data/logs/ivydb_loader.log
+2026-06-11 13:12:57 UTC INFO ivydb.clickhouse_loader.cli: Writing run log to /home/ai4000/projects/one-time-projects/wrds-data/logs/ivydb_loader.log
+2026-06-11 13:13:51 UTC INFO ivydb.clickhouse_loader.cli: Writing run log to /home/ai4000/projects/one-time-projects/wrds-data/logs/ivydb_loader.log
+2026-06-11 13:13:51 UTC INFO ivydb.clickhouse_loader.cli: Command=load target_database=ivydb tables=1
+2026-06-11 13:13:53 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Starting IvyDB load for 1 source table(s); local audit file: /home/ai4000/projects/one-time-projects/wrds-data/logs/ivydb_load_audit.jsonl
+2026-06-11 13:13:53 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Skipping optionm_all.opprcd2025 -> opprcd2025 because the local audit file marks it complete
+2026-06-11 13:14:12 UTC INFO ivydb.clickhouse_loader.cli: Writing run log to /home/ai4000/projects/one-time-projects/wrds-data/logs/ivydb_loader.log
+2026-06-11 13:14:12 UTC INFO ivydb.clickhouse_loader.cli: Command=load target_database=ivydb tables=1
+2026-06-11 13:14:13 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Starting IvyDB load for 1 source table(s); local audit file: /home/ai4000/projects/one-time-projects/wrds-data/logs/ivydb_load_audit.jsonl
+2026-06-11 13:14:13 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Skipping optionm_all.opprcd2025 -> opprcd2025 because the local audit file marks it complete

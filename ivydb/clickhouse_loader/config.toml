@@ -59,8 +59,7 @@ source_library = "optionm_all"
 source_prefix = "opprcd"
 # Option price years to create and load in this run.
 years = [
-  1996, 1997, 1998, 1999, 2000,
-  2001, 2002, 2003, 2004, 2005,
+  2025, 
 ]
 
 # All-years option price example:

@@ -9551,3 +9551,5 @@ ValueError: vega must fit Decimal32(6) range -2147.483648 to 2147.483647
 2026-06-10 23:00:25 UTC INFO ivydb.clickhouse_loader.cli: Command=validate target_database=ivydb tables=1
 2026-06-11 02:48:08 UTC INFO ivydb.clickhouse_loader.cli: Writing run log to /home/ai4000/projects/one-time-projects/wrds-data/logs/ivydb_loader.log
 2026-06-11 02:48:08 UTC INFO ivydb.clickhouse_loader.cli: Command=validate target_database=ivydb tables=1
+2026-06-11 03:42:57 UTC INFO ivydb.clickhouse_loader.cli: Writing run log to /home/ai4000/projects/one-time-projects/wrds-data/logs/ivydb_loader.log
+2026-06-11 03:44:06 UTC INFO ivydb.clickhouse_loader.cli: Writing run log to /home/ai4000/projects/one-time-projects/wrds-data/logs/ivydb_loader.log

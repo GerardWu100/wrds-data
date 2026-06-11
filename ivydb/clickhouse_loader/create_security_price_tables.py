@@ -13,18 +13,18 @@ from ivydb.clickhouse_loader.config import AppConfig, default_config
 # index/ETF underlyings can exceed the UInt32 range.
 SECURITY_PRICE_TABLE_SQL = """
 CREATE TABLE IF NOT EXISTS `{database}`.`{table}` (
-    `source_year` UInt16 CODEC(ZSTD(6)),
-    `secid` Nullable(UInt32) CODEC(ZSTD(6)),
-    `date` Nullable(Date32) CODEC(DoubleDelta, ZSTD(6)),
-    `low` Nullable(Float32) CODEC(ZSTD(6)),
-    `high` Nullable(Float32) CODEC(ZSTD(6)),
-    `close` Nullable(Float32) CODEC(ZSTD(6)),
-    `volume` Nullable(UInt64) CODEC(ZSTD(6)),
-    `return` Nullable(Float32) CODEC(ZSTD(6)),
-    `cfadj` Nullable(Float32) CODEC(ZSTD(6)),
-    `open` Nullable(Float32) CODEC(ZSTD(6)),
-    `cfret` Nullable(Float32) CODEC(ZSTD(6)),
-    `shrout` Nullable(Float32) CODEC(ZSTD(6))
+    `source_year` UInt16 CODEC(ZSTD(12)),
+    `secid` Nullable(UInt32) CODEC(ZSTD(12)),
+    `date` Nullable(Date32) CODEC(DoubleDelta, ZSTD(12)),
+    `low` Nullable(Float32) CODEC(ZSTD(12)),
+    `high` Nullable(Float32) CODEC(ZSTD(12)),
+    `close` Nullable(Float32) CODEC(ZSTD(12)),
+    `volume` Nullable(UInt64) CODEC(ZSTD(12)),
+    `return` Nullable(Float32) CODEC(ZSTD(12)),
+    `cfadj` Nullable(Float32) CODEC(ZSTD(12)),
+    `open` Nullable(Float32) CODEC(ZSTD(12)),
+    `cfret` Nullable(Float32) CODEC(ZSTD(12)),
+    `shrout` Nullable(Float32) CODEC(ZSTD(12))
 )
 ENGINE = MergeTree
 PARTITION BY `source_year`

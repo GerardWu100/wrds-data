@@ -53,6 +53,9 @@ class IvydbClickhouseConfigTests(unittest.TestCase):
                     secure = false
                     database = "ivydb"
 
+                    [loader]
+                    year_summary_log_path = "logs/ivydb_year_summary.log"
+
                     [tables.option_prices]
                     enabled = true
                     source_library = "optionm_all"
@@ -82,6 +85,10 @@ class IvydbClickhouseConfigTests(unittest.TestCase):
             config = load_config(config_path)
 
         self.assertEqual(config.clickhouse.database, "ivydb")
+        self.assertEqual(
+            config.loader.year_summary_log_path.name,
+            "ivydb_year_summary.log",
+        )
         self.assertEqual(config.option_price_years, [2024, 2025])
         self.assertEqual(config.underlying_price_years, [2023])
         self.assertEqual(config.static_tables[0].source_table, "opinfd")
@@ -226,6 +233,7 @@ class IvydbClickhouseTablePlanTests(unittest.TestCase):
         config = default_config()
         config = replace(
             config,
+            option_prices=replace(config.option_prices, years=()),
             underlying_prices=replace(config.underlying_prices, years=(2023, 2024)),
             static_tables=(),
         )
@@ -251,6 +259,7 @@ class IvydbClickhouseTablePlanTests(unittest.TestCase):
         config = default_config()
         config = replace(
             config,
+            option_prices=replace(config.option_prices, years=()),
             underlying_prices=replace(config.underlying_prices, years=(2024,)),
             static_tables=(
                 StaticTableConfig("optionm_all", "opinfd", "opinfd"),
@@ -311,6 +320,7 @@ class IvydbClickhouseCreateTablesTests(unittest.TestCase):
         config = default_config()
         config = replace(
             config,
+            option_prices=replace(config.option_prices, years=()),
             underlying_prices=replace(config.underlying_prices, years=(2023, 2024)),
             static_tables=(),
         )
@@ -383,44 +393,45 @@ class IvydbClickhouseSchemaTests(unittest.TestCase):
         self.assertEqual(security_tables, ["secprd"])
         self.assertEqual(reference_tables, ["opinfd"])
         self.assertEqual(len(fake_client.commands), 3)
+        self.assertNotIn("ZSTD(6)", "\n".join(fake_client.commands))
         self.assertIn("CREATE TABLE IF NOT EXISTS `ivydb`.`opprcd2024`", fake_client.commands[0])
-        self.assertIn("`secid` Nullable(UInt32) CODEC(ZSTD(6))", fake_client.commands[0])
-        self.assertIn("`date` Nullable(Date32) CODEC(DoubleDelta, ZSTD(6))", fake_client.commands[0])
+        self.assertIn("`secid` Nullable(UInt32) CODEC(ZSTD(12))", fake_client.commands[0])
+        self.assertIn("`date` Nullable(Date32) CODEC(DoubleDelta, ZSTD(12))", fake_client.commands[0])
         self.assertIn(
-            "`symbol` LowCardinality(Nullable(String)) CODEC(ZSTD(6))",
+            "`symbol` LowCardinality(Nullable(String)) CODEC(ZSTD(12))",
             fake_client.commands[0],
         )
         self.assertIn(
-            "`cp_flag` Nullable(Enum8('C' = 1, 'P' = 2)) CODEC(ZSTD(6))",
+            "`cp_flag` Nullable(Enum8('C' = 1, 'P' = 2)) CODEC(ZSTD(12))",
             fake_client.commands[0],
         )
         self.assertIn(
             "ifNull(CAST(`cp_flag`, 'Nullable(Int8)'), toInt8(0))",
             fake_client.commands[0],
         )
-        self.assertIn("`volume` Nullable(UInt32) CODEC(ZSTD(6))", fake_client.commands[0])
-        self.assertIn("`open_interest` Nullable(UInt32) CODEC(ZSTD(6))", fake_client.commands[0])
-        self.assertIn("`am_settlement` Nullable(UInt8) CODEC(ZSTD(6))", fake_client.commands[0])
-        self.assertIn("`contract_size` Nullable(Int32) CODEC(ZSTD(6))", fake_client.commands[0])
-        self.assertIn("`optionid` Nullable(UInt64) CODEC(Delta, ZSTD(6))", fake_client.commands[0])
-        self.assertIn("`impl_volatility` Nullable(Decimal32(6)) CODEC(ZSTD(6))", fake_client.commands[0])
-        self.assertIn("`delta` Nullable(Decimal32(6)) CODEC(ZSTD(6))", fake_client.commands[0])
-        self.assertIn("`gamma` Nullable(Decimal32(6)) CODEC(ZSTD(6))", fake_client.commands[0])
-        self.assertIn("`vega` Nullable(Float32) CODEC(ZSTD(6))", fake_client.commands[0])
-        self.assertIn("`theta` Nullable(Float32) CODEC(ZSTD(6))", fake_client.commands[0])
-        self.assertIn("`strike_price` Nullable(Float32) CODEC(ZSTD(6))", fake_client.commands[0])
+        self.assertIn("`volume` Nullable(UInt32) CODEC(ZSTD(12))", fake_client.commands[0])
+        self.assertIn("`open_interest` Nullable(UInt32) CODEC(ZSTD(12))", fake_client.commands[0])
+        self.assertIn("`am_settlement` Nullable(UInt8) CODEC(ZSTD(12))", fake_client.commands[0])
+        self.assertIn("`contract_size` Nullable(Int32) CODEC(ZSTD(12))", fake_client.commands[0])
+        self.assertIn("`optionid` Nullable(UInt64) CODEC(Delta, ZSTD(12))", fake_client.commands[0])
+        self.assertIn("`impl_volatility` Nullable(Decimal32(6)) CODEC(ZSTD(12))", fake_client.commands[0])
+        self.assertIn("`delta` Nullable(Decimal32(6)) CODEC(ZSTD(12))", fake_client.commands[0])
+        self.assertIn("`gamma` Nullable(Decimal32(6)) CODEC(ZSTD(12))", fake_client.commands[0])
+        self.assertIn("`vega` Nullable(Float32) CODEC(ZSTD(12))", fake_client.commands[0])
+        self.assertIn("`theta` Nullable(Float32) CODEC(ZSTD(12))", fake_client.commands[0])
+        self.assertIn("`strike_price` Nullable(Float32) CODEC(ZSTD(12))", fake_client.commands[0])
         self.assertNotIn("forward_price", fake_client.commands[0])
         self.assertNotIn("`root`", fake_client.commands[0])
         self.assertNotIn("`suffix`", fake_client.commands[0])
         self.assertNotIn("allow_nullable_key", fake_client.commands[0])
         self.assertIn("CREATE TABLE IF NOT EXISTS `ivydb`.`secprd`", fake_client.commands[1])
-        self.assertIn("`date` Nullable(Date32) CODEC(DoubleDelta, ZSTD(6))", fake_client.commands[1])
-        self.assertIn("`close` Nullable(Float32) CODEC(ZSTD(6))", fake_client.commands[1])
-        self.assertIn("`volume` Nullable(UInt64) CODEC(ZSTD(6))", fake_client.commands[1])
+        self.assertIn("`date` Nullable(Date32) CODEC(DoubleDelta, ZSTD(12))", fake_client.commands[1])
+        self.assertIn("`close` Nullable(Float32) CODEC(ZSTD(12))", fake_client.commands[1])
+        self.assertIn("`volume` Nullable(UInt64) CODEC(ZSTD(12))", fake_client.commands[1])
         self.assertNotIn("allow_nullable_key", fake_client.commands[1])
         self.assertIn("CREATE TABLE IF NOT EXISTS `ivydb`.`opinfd`", fake_client.commands[2])
         self.assertIn(
-            "`exercise_style` LowCardinality(Nullable(String)) CODEC(ZSTD(6))",
+            "`exercise_style` LowCardinality(Nullable(String)) CODEC(ZSTD(12))",
             fake_client.commands[2],
         )
 
@@ -449,7 +460,7 @@ class IvydbClickhouseSchemaTests(unittest.TestCase):
         fake_client = FakeClickHouseClient()
         create_reference_tables(fake_client, config)
         self.assertIn(
-            "`effect_date` Nullable(Date32) CODEC(DoubleDelta, ZSTD(6))",
+            "`effect_date` Nullable(Date32) CODEC(DoubleDelta, ZSTD(12))",
             fake_client.commands[-1],
         )
 
@@ -1064,6 +1075,105 @@ class IvydbClickhouseLoadTests(unittest.TestCase):
         self.assertEqual(audit_rows[1]["rows_inserted"], 2)
         self.assertEqual(client.inserted_tables, ["opprcd2024"])
         self.assertFalse(any("_load_audit" in command for command in client.commands))
+
+    def test_successful_yearly_load_writes_human_summary_log(self) -> None:
+        """Completed yearly loads should append a compact human-readable summary."""
+
+        import pandas as pd
+
+        from ivydb.clickhouse_loader.load_to_clickhouse import load_tables
+
+        table = self.option_price_plan()
+        chunk = pd.DataFrame(
+            {
+                "secid": [101.0, 102.0, 103.0],
+                "date": ["2024-01-02", "2024-01-02", "2024-01-03"],
+                "volume": [1.0, 2.0, 3.0],
+            }
+        )
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            audit_path = Path(tmpdir) / "audit.jsonl"
+            year_summary_path = Path(tmpdir) / "ivydb_year_summary.log"
+            config = self.config_with_audit_path(audit_path)
+            config = replace(
+                config,
+                loader=replace(
+                    config.loader,
+                    year_summary_log_path=year_summary_path,
+                ),
+            )
+            client = self.empty_existing_target_client("opprcd2024")
+
+            with patch(
+                "ivydb.clickhouse_loader.load_to_clickhouse.stream_table",
+                return_value=[chunk],
+            ):
+                load_tables(
+                    config=config,
+                    wrds_connection=object(),
+                    clickhouse_client=client,
+                    table_plan=[table],
+                )
+
+            summary_lines = year_summary_path.read_text(encoding="utf-8").splitlines()
+
+        self.assertEqual(len(summary_lines), 1)
+        self.assertIn("status=complete", summary_lines[0])
+        self.assertIn("source_table=opprcd2024", summary_lines[0])
+        self.assertIn("target_table=opprcd2024", summary_lines[0])
+        self.assertIn("source_year=2024", summary_lines[0])
+        self.assertIn("rows_inserted=3", summary_lines[0])
+        self.assertIn("elapsed_seconds=", summary_lines[0])
+
+    def test_static_load_does_not_write_year_summary_log(self) -> None:
+        """Static reference loads should not write the yearly completion log."""
+
+        import pandas as pd
+
+        from ivydb.clickhouse_loader.load_to_clickhouse import load_tables
+        from ivydb.clickhouse_loader.source_columns import REFERENCE_SOURCE_COLUMNS
+        from ivydb.clickhouse_loader.table_plan import TablePlan
+
+        table = TablePlan(
+            source_library="optionm_all",
+            source_table="opinfd",
+            target_table="opinfd",
+            source_prefix="opinfd",
+            source_year=None,
+            load_group="reference",
+            layout="single_table",
+            source_year_column=None,
+            source_columns=REFERENCE_SOURCE_COLUMNS["opinfd"],
+        )
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            audit_path = Path(tmpdir) / "audit.jsonl"
+            year_summary_path = Path(tmpdir) / "ivydb_year_summary.log"
+            config = self.config_with_audit_path(audit_path)
+            config = replace(
+                config,
+                loader=replace(
+                    config.loader,
+                    year_summary_log_path=year_summary_path,
+                ),
+            )
+            client = self.empty_existing_target_client("opinfd")
+
+            with patch(
+                "ivydb.clickhouse_loader.load_to_clickhouse.stream_table",
+                return_value=[pd.DataFrame({"secid": [101.0]})],
+            ):
+                load_tables(
+                    config=config,
+                    wrds_connection=object(),
+                    clickhouse_client=client,
+                    table_plan=[table],
+                )
+
+            summary_exists = year_summary_path.exists()
+
+        self.assertFalse(summary_exists)
 
     def test_failed_load_records_failure_and_stops_before_later_source(self) -> None:
         """A handled insert failure should abort the batch without loading later sources."""

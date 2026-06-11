@@ -126,3 +126,6 @@ instead of the older unsigned column.
   exceeded the `Decimal32(6)` range during load. Implied volatility, delta, and
   gamma remain `Decimal32(6)`, while vega and theta are compact `Float32`
   model-output columns.
+- 2026-06-11: Switched new IvyDB ClickHouse tables to `ZSTD(12)` codecs and
+  added `logs/ivydb_year_summary.log` for one-line completion summaries after
+  each yearly source table finishes.

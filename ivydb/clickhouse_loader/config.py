@@ -20,6 +20,7 @@ DEFAULT_END_YEAR = 2025
 DEFAULT_WRDS_BATCH_SIZE = 100000
 DEFAULT_CLICKHOUSE_INSERT_SIZE = 100000
 DEFAULT_RESUME = True
+DEFAULT_YEAR_SUMMARY_LOG_PATH = "logs/ivydb_year_summary.log"
 OPTIONM_LIBRARY = "optionm_all"
 CRSP_LINK_LIBRARY = "wrdsapps_link_crsp_optionm"
 OPTION_PRICE_PREFIX = "opprcd"
@@ -93,6 +94,10 @@ class LoaderConfig:
     run_log_path:
         Local text log for human-readable loader progress. ``None`` disables
         file logging while still printing to the terminal.
+    year_summary_log_path:
+        Local text log that receives one compact completion line for each
+        yearly source table. Static reference tables do not write this log
+        because they have no source year.
     """
 
     wrds_batch_size: int
@@ -100,6 +105,7 @@ class LoaderConfig:
     resume: bool
     audit_log_path: Path
     run_log_path: Path | None
+    year_summary_log_path: Path
 
 
 @dataclass(frozen=True)
@@ -319,6 +325,10 @@ def _parse_loader_config(raw_config: dict[str, Any]) -> LoaderConfig:
         run_log_path=_parse_optional_local_path(
             raw_config.get("run_log_path", "logs/ivydb_loader.log"),
             "loader.run_log_path",
+        ),
+        year_summary_log_path=_parse_local_path(
+            raw_config.get("year_summary_log_path", DEFAULT_YEAR_SUMMARY_LOG_PATH),
+            "loader.year_summary_log_path",
         ),
     )
 

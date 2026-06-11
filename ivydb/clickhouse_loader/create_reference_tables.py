@@ -9,42 +9,42 @@ from ivydb.clickhouse_loader.config import AppConfig, default_config
 REFERENCE_TABLE_SQL_BY_SOURCE = {
     "securd": """
 CREATE TABLE IF NOT EXISTS `{database}`.`{table}` (
-    `secid` Nullable(UInt32) CODEC(ZSTD(6)),
-    `cusip` LowCardinality(Nullable(String)) CODEC(ZSTD(6)),
-    `ticker` LowCardinality(Nullable(String)) CODEC(ZSTD(6)),
-    `sic` LowCardinality(Nullable(String)) CODEC(ZSTD(6)),
-    `index_flag` LowCardinality(Nullable(String)) CODEC(ZSTD(6)),
-    `exchange_d` Nullable(Float64) CODEC(ZSTD(6)),
-    `class` LowCardinality(Nullable(String)) CODEC(ZSTD(6)),
-    `issue_type` LowCardinality(Nullable(String)) CODEC(ZSTD(6)),
-    `industry_group` Nullable(Float64) CODEC(ZSTD(6))
+    `secid` Nullable(UInt32) CODEC(ZSTD(12)),
+    `cusip` LowCardinality(Nullable(String)) CODEC(ZSTD(12)),
+    `ticker` LowCardinality(Nullable(String)) CODEC(ZSTD(12)),
+    `sic` LowCardinality(Nullable(String)) CODEC(ZSTD(12)),
+    `index_flag` LowCardinality(Nullable(String)) CODEC(ZSTD(12)),
+    `exchange_d` Nullable(Float64) CODEC(ZSTD(12)),
+    `class` LowCardinality(Nullable(String)) CODEC(ZSTD(12)),
+    `issue_type` LowCardinality(Nullable(String)) CODEC(ZSTD(12)),
+    `industry_group` Nullable(Float64) CODEC(ZSTD(12))
 )
 ENGINE = MergeTree
 ORDER BY (ifNull(`secid`, 0))
 """,
     "secnmd": """
 CREATE TABLE IF NOT EXISTS `{database}`.`{table}` (
-    `secid` Nullable(UInt32) CODEC(ZSTD(6)),
-    `effect_date` Nullable(Date32) CODEC(DoubleDelta, ZSTD(6)),
-    `cusip` LowCardinality(Nullable(String)) CODEC(ZSTD(6)),
-    `ticker` LowCardinality(Nullable(String)) CODEC(ZSTD(6)),
-    `class` LowCardinality(Nullable(String)) CODEC(ZSTD(6)),
-    `issuer` Nullable(String) CODEC(ZSTD(6)),
-    `issue` Nullable(String) CODEC(ZSTD(6)),
-    `sic` LowCardinality(Nullable(String)) CODEC(ZSTD(6))
+    `secid` Nullable(UInt32) CODEC(ZSTD(12)),
+    `effect_date` Nullable(Date32) CODEC(DoubleDelta, ZSTD(12)),
+    `cusip` LowCardinality(Nullable(String)) CODEC(ZSTD(12)),
+    `ticker` LowCardinality(Nullable(String)) CODEC(ZSTD(12)),
+    `class` LowCardinality(Nullable(String)) CODEC(ZSTD(12)),
+    `issuer` Nullable(String) CODEC(ZSTD(12)),
+    `issue` Nullable(String) CODEC(ZSTD(12)),
+    `sic` LowCardinality(Nullable(String)) CODEC(ZSTD(12))
 )
 ENGINE = MergeTree
 ORDER BY (ifNull(`secid`, 0), ifNull(`effect_date`, toDate32('1970-01-01')))
 """,
     "exchgd": """
 CREATE TABLE IF NOT EXISTS `{database}`.`{table}` (
-    `secid` Nullable(UInt32) CODEC(ZSTD(6)),
-    `effect_date` Nullable(Date32) CODEC(DoubleDelta, ZSTD(6)),
-    `seq_num` Nullable(UInt32) CODEC(ZSTD(6)),
-    `status` LowCardinality(Nullable(String)) CODEC(ZSTD(6)),
-    `exchange` LowCardinality(Nullable(String)) CODEC(ZSTD(6)),
-    `add_del` LowCardinality(Nullable(String)) CODEC(ZSTD(6)),
-    `exch_flag` LowCardinality(Nullable(String)) CODEC(ZSTD(6))
+    `secid` Nullable(UInt32) CODEC(ZSTD(12)),
+    `effect_date` Nullable(Date32) CODEC(DoubleDelta, ZSTD(12)),
+    `seq_num` Nullable(UInt32) CODEC(ZSTD(12)),
+    `status` LowCardinality(Nullable(String)) CODEC(ZSTD(12)),
+    `exchange` LowCardinality(Nullable(String)) CODEC(ZSTD(12)),
+    `add_del` LowCardinality(Nullable(String)) CODEC(ZSTD(12)),
+    `exch_flag` LowCardinality(Nullable(String)) CODEC(ZSTD(12))
 )
 ENGINE = MergeTree
 ORDER BY (
@@ -55,21 +55,21 @@ ORDER BY (
 """,
     "distrd": """
 CREATE TABLE IF NOT EXISTS `{database}`.`{table}` (
-    `secid` Nullable(UInt32) CODEC(ZSTD(6)),
-    `record_date` Nullable(Date32) CODEC(DoubleDelta, ZSTD(6)),
-    `seq_num` Nullable(UInt32) CODEC(ZSTD(6)),
-    `ex_date` Nullable(Date32) CODEC(DoubleDelta, ZSTD(6)),
-    `amount` Nullable(Float64) CODEC(ZSTD(6)),
-    `adj_factor` Nullable(Float64) CODEC(ZSTD(6)),
-    `declare_date` Nullable(Date32) CODEC(DoubleDelta, ZSTD(6)),
-    `payment_date` Nullable(Date32) CODEC(DoubleDelta, ZSTD(6)),
-    `link_secid` Nullable(UInt32) CODEC(ZSTD(6)),
-    `distr_type` LowCardinality(Nullable(String)) CODEC(ZSTD(6)),
-    `frequency` LowCardinality(Nullable(String)) CODEC(ZSTD(6)),
-    `currency` LowCardinality(Nullable(String)) CODEC(ZSTD(6)),
-    `approx_flag` LowCardinality(Nullable(String)) CODEC(ZSTD(6)),
-    `cancel_flag` LowCardinality(Nullable(String)) CODEC(ZSTD(6)),
-    `liquid_flag` LowCardinality(Nullable(String)) CODEC(ZSTD(6))
+    `secid` Nullable(UInt32) CODEC(ZSTD(12)),
+    `record_date` Nullable(Date32) CODEC(DoubleDelta, ZSTD(12)),
+    `seq_num` Nullable(UInt32) CODEC(ZSTD(12)),
+    `ex_date` Nullable(Date32) CODEC(DoubleDelta, ZSTD(12)),
+    `amount` Nullable(Float64) CODEC(ZSTD(12)),
+    `adj_factor` Nullable(Float64) CODEC(ZSTD(12)),
+    `declare_date` Nullable(Date32) CODEC(DoubleDelta, ZSTD(12)),
+    `payment_date` Nullable(Date32) CODEC(DoubleDelta, ZSTD(12)),
+    `link_secid` Nullable(UInt32) CODEC(ZSTD(12)),
+    `distr_type` LowCardinality(Nullable(String)) CODEC(ZSTD(12)),
+    `frequency` LowCardinality(Nullable(String)) CODEC(ZSTD(12)),
+    `currency` LowCardinality(Nullable(String)) CODEC(ZSTD(12)),
+    `approx_flag` LowCardinality(Nullable(String)) CODEC(ZSTD(12)),
+    `cancel_flag` LowCardinality(Nullable(String)) CODEC(ZSTD(12)),
+    `liquid_flag` LowCardinality(Nullable(String)) CODEC(ZSTD(12))
 )
 ENGINE = MergeTree
 ORDER BY (
@@ -80,21 +80,21 @@ ORDER BY (
 """,
     "opinfd": """
 CREATE TABLE IF NOT EXISTS `{database}`.`{table}` (
-    `secid` Nullable(UInt32) CODEC(ZSTD(6)),
-    `div_convention` LowCardinality(Nullable(String)) CODEC(ZSTD(6)),
-    `exercise_style` LowCardinality(Nullable(String)) CODEC(ZSTD(6)),
-    `am_set_flag` LowCardinality(Nullable(String)) CODEC(ZSTD(6))
+    `secid` Nullable(UInt32) CODEC(ZSTD(12)),
+    `div_convention` LowCardinality(Nullable(String)) CODEC(ZSTD(12)),
+    `exercise_style` LowCardinality(Nullable(String)) CODEC(ZSTD(12)),
+    `am_set_flag` LowCardinality(Nullable(String)) CODEC(ZSTD(12))
 )
 ENGINE = MergeTree
 ORDER BY (ifNull(`secid`, 0))
 """,
     "opcrsphist": """
 CREATE TABLE IF NOT EXISTS `{database}`.`{table}` (
-    `secid` Nullable(UInt32) CODEC(ZSTD(6)),
-    `sdate` Nullable(Date32) CODEC(DoubleDelta, ZSTD(6)),
-    `edate` Nullable(Date32) CODEC(DoubleDelta, ZSTD(6)),
-    `permno` Nullable(UInt32) CODEC(ZSTD(6)),
-    `score` Nullable(Float64) CODEC(ZSTD(6))
+    `secid` Nullable(UInt32) CODEC(ZSTD(12)),
+    `sdate` Nullable(Date32) CODEC(DoubleDelta, ZSTD(12)),
+    `edate` Nullable(Date32) CODEC(DoubleDelta, ZSTD(12)),
+    `permno` Nullable(UInt32) CODEC(ZSTD(12)),
+    `score` Nullable(Float64) CODEC(ZSTD(12))
 )
 ENGINE = MergeTree
 ORDER BY (

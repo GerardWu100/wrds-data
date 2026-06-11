@@ -76,8 +76,10 @@ process environment variables. For example, set `years = [2024]` in
 `[tables.static_reference].tables` to load only the small Option_Info table.
 The full available bundle maps 66 WRDS source tables into 37 ClickHouse data
 tables, but the config should usually select a small subset.
-Operational audit and run logs stay local in `logs/ivydb_load_audit.jsonl` and
-`logs/ivydb_loader.log`; the loader does not add an audit table to ClickHouse.
+Operational audit, run, and yearly completion logs stay local in
+`logs/ivydb_load_audit.jsonl`, `logs/ivydb_loader.log`, and
+`logs/ivydb_year_summary.log`; the loader does not add an audit table to
+ClickHouse.
 Historical IvyDB tables are append-once loads: `load` writes directly into
 pre-created curated ClickHouse tables and records a `started` audit event
 before insertion. `clear-failed` clears only sources whose latest audit status

@@ -47,17 +47,18 @@ resume = true
 audit_log_path = "logs/ivydb_load_audit.jsonl"
 # Local text log for loader progress. Use "" to disable file logging.
 run_log_path = "logs/ivydb_loader.log"
+# Local text log that receives one compact completion summary per yearly source table.
+year_summary_log_path = "logs/ivydb_year_summary.log"
 
 [tables.option_prices]
 # Set false to ignore option price years in this run.
-enabled = true
+enabled = false
 # WRDS PostgreSQL library/schema for OptionMetrics IvyDB US.
 source_library = "optionm_all"
 # Source table prefix. The loader combines this with each year, for example opprcd2024.
 source_prefix = "opprcd"
 # Option price years to create and load in this run.
 years = [
-  2025,
 ]
 
 # All-years option price example:
@@ -95,7 +96,7 @@ source_year_column = "source_year"
 
 [tables.static_reference]
 # Set false to ignore static/reference tables in this run.
-enabled = false
+enabled = true
 # Static/reference tables to load. Use either table names or explicit mappings.
 # Allowed table-name shortcuts: securd, secnmd, exchgd, distrd, opinfd, opcrsphist.
 tables = [

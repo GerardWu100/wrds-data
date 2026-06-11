@@ -164,6 +164,13 @@ def _load_one_table_direct(
                 table.source_table,
             )
         _write_audit_row(config, table, rows_loaded, started_at, "complete", "")
+        _write_year_summary_row(
+            config=config,
+            clickhouse_client=clickhouse_client,
+            table=table,
+            rows_loaded=rows_loaded,
+            started_at=started_at,
+        )
         LOGGER.info(
             "Completed %s.%s -> %s with %s row(s)",
             table.source_library,
@@ -290,6 +297,70 @@ def _write_audit_row(
     }
     with audit_path.open("a", encoding="utf-8") as audit_file:
         audit_file.write(json.dumps(record, sort_keys=True) + "\n")
+
+
+def _write_year_summary_row(
+    config: AppConfig,
+    clickhouse_client: object,
+    table: TablePlan,
+    rows_loaded: int,
+    started_at: datetime,
+) -> None:
+    """Append one human-readable completion line for a yearly source table.
+
+    The JSON-lines audit log remains the resume source of truth. This separate
+    summary is for tailing a long run and quickly seeing which source years
+    finished, how many rows inserted, and how long each source took.
+    """
+
+    if table.source_year is None:
+        return
+
+    completed_at = datetime.now(UTC)
+    elapsed_seconds = (completed_at - started_at).total_seconds()
+    target_row_count = _target_row_count_text(config, clickhouse_client, table)
+    summary_path = config.loader.year_summary_log_path
+    summary_path.parent.mkdir(parents=True, exist_ok=True)
+    fields = [
+        f"completed_at={completed_at.isoformat()}",
+        "status=complete",
+        f"source_library={table.source_library}",
+        f"source_table={table.source_table}",
+        f"target_table={table.target_table}",
+        f"source_year={table.source_year}",
+        f"rows_inserted={rows_loaded}",
+        f"target_row_count={target_row_count}",
+        f"elapsed_seconds={elapsed_seconds:.3f}",
+        f"started_at={started_at.isoformat()}",
+    ]
+    with summary_path.open("a", encoding="utf-8") as summary_file:
+        summary_file.write(" ".join(fields) + "\n")
+
+
+def _target_row_count_text(
+    config: AppConfig,
+    clickhouse_client: object,
+    table: TablePlan,
+) -> str:
+    """Return a row-count string for the yearly summary log."""
+
+    try:
+        if table.is_consolidated_year_table:
+            if table.source_year is None or table.source_year_column is None:
+                return "unavailable"
+            result = clickhouse_client.query(
+                f"SELECT count() FROM `{config.clickhouse.database}`.`{table.target_table}` "
+                f"WHERE `{table.source_year_column}` = {table.source_year}"
+            )
+            return str(int(result.result_rows[0][0]))
+        row_count = table_row_count(
+            clickhouse_client,
+            config.clickhouse.database,
+            table.target_table,
+        )
+        return str(row_count)
+    except Exception as error:
+        return f"unavailable:{type(error).__name__}"
 
 
 def _local_audit_latest_status(audit_path: Path, table: TablePlan) -> str | None:

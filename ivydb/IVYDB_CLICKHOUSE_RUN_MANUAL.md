@@ -112,7 +112,14 @@ Loader behaviour (resume and log paths) lives in `[loader]`:
 resume = true
 audit_log_path = "logs/ivydb_load_audit.jsonl"
 run_log_path = "logs/ivydb_loader.log"
+year_summary_log_path = "logs/ivydb_year_summary.log"
 ```
+
+`audit_log_path` is the machine-readable JSON-lines file used for resume and
+cleanup decisions. `run_log_path` is the detailed progress log. The separate
+`year_summary_log_path` receives one compact human-readable line after each
+yearly source table finishes, including the source year, inserted rows, target
+row count when available, and elapsed seconds.
 
 ---
 

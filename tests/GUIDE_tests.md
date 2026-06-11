@@ -58,7 +58,7 @@ file-handling logic around it.
 - Checks config parsing, table-plan construction, curated ClickHouse schema
   setup, date codecs, WRDS SQL construction, insert batching, chunk
   normalization including date-string conversion, local-audit resume skips,
-  duplicate target protection,
+  yearly summary logging, duplicate target protection,
   fail-fast direct-load behavior, batch-aware `clear-failed` cleanup,
   interrupted-load recovery, CLI subcommands, and validation SQL.
 - Does not connect to WRDS or ClickHouse.
@@ -94,6 +94,8 @@ uv run python -m unittest boardex_parquet.test_clickhouse_loader -v
   explicit cleanup of failed or interrupted selections in a larger batch.
 - 2026-06-05: Added IvyDB loader coverage for converting WRDS date strings to
   Python `date` objects before ClickHouse `Date32` inserts.
+- 2026-06-11: Added IvyDB loader coverage for `ZSTD(12)` curated schemas and
+  the separate yearly completion summary log.
 - 2026-05-12: Added BoardEx ClickHouse loader coverage for nullable sort-key
   DDL so local Parquet tables can be created reliably in ClickHouse.
 - 2026-05-12: Added BoardEx ClickHouse tests for separate schema creation and

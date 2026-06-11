@@ -41,7 +41,7 @@ Nullable categorical strings stay null in ClickHouse. Identifier and count
 columns are validated and cast at the incoming-chunk boundary. WRDS date strings
 for curated `Date32` columns are converted to Python `date` objects before
 insertion because the ClickHouse client subtracts a date epoch while encoding
-date columns. Date columns use `DoubleDelta` plus `ZSTD(6)`.
+date columns. Date columns use `DoubleDelta` plus `ZSTD(12)`.
 
 The loader downloads an explicit, reviewed column list per source table from
 `source_columns.py` instead of `SELECT *`. This keeps the downloaded set a
@@ -91,7 +91,10 @@ started, completed, interrupted, failed, and cleared source-table events to the
 local JSON-lines file `logs/ivydb_load_audit.jsonl`. Set `resume = true` in
 `[loader]` to skip source tables whose latest matching audit event is complete.
 A newer started, interrupted, or failed event for the same source and target
-keeps the source eligible for deliberate cleanup and repair.
+keeps the source eligible for deliberate cleanup and repair. The separate
+`logs/ivydb_year_summary.log` file receives one compact human-readable line
+after each yearly source table finishes, including the source year, inserted
+rows, target row count when available, and elapsed seconds.
 
 WRDS rows are pulled through a PostgreSQL server-side cursor (see
 `wrds_stream.py`). This matters for the large yearly option-price tables:
@@ -146,7 +149,8 @@ table.
 `config.toml`
 
 - The normal control surface for table families, year lists, static table lists,
-  loader settings (`resume`, log paths), and non-secret ClickHouse defaults.
+  loader settings (`resume`, log paths, yearly summary log path), and non-secret
+  ClickHouse defaults.
 - ClickHouse connection values can be overridden by process environment
   variables or `ivydb/.env`: `IVYDB_CLICKHOUSE_HOST`,
   `IVYDB_CLICKHOUSE_PORT`, `IVYDB_CLICKHOUSE_USERNAME`,
@@ -310,3 +314,7 @@ See `ivydb/IVYDB_CLICKHOUSE_RUN_MANUAL.md` for batch-by-batch config examples.
 - 2026-06-10: Fixed validation required-key SQL so enum columns such as
   `cp_flag` are checked with `IS NULL` only. Comparing a ClickHouse enum to an
   empty string raises `UNKNOWN_ELEMENT_OF_ENUM`.
+- 2026-06-11: Changed curated IvyDB ClickHouse DDL from `ZSTD(6)` to
+  `ZSTD(12)` across option-price, underlying-price, and reference/link tables.
+  Added `logs/ivydb_year_summary.log` so each completed yearly source appends a
+  compact human-readable completion line separate from the JSON audit log.

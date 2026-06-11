@@ -13,9 +13,12 @@ that explain how to use WRDS datasets in this repository.
   WRDS dataset descriptions and data dictionary URLs.
 - `boardex_osint_data_plan.md`: Planning note for BoardEx and public-source
   data work.
+- `reference/ivydb_opprcd2025_current_compression.md`: Current live ClickHouse
+  size, codec, and per-column compression measurements for `ivydb.opprcd2025`.
 
 ## Connections
 
 The catalog export modules read the CSV metadata files in this folder and write
-merged outputs under `outputs/`. IvyDB-specific planning notes live under
-`ivydb/`, so there is only one canonical IvyDB download plan.
+merged outputs under `outputs/`. IvyDB implementation plans live under
+`ivydb/`; measured database-reference snapshots live under `docs/reference/`
+when they are useful for later comparison.

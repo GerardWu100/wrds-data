@@ -70,11 +70,12 @@ removes noisy `Float32` mantissa bits and improves compression while preserving
 the six-decimal WRDS value where the observed range fits. They use `T64` before
 `ZSTD(12)` because a January 2025 shadow-table benchmark showed lossless
 compressed-byte reductions of roughly 15-19% for those three scaled-integer
-columns. Vega and theta use `Float32`: recent 2025 rows exceeded
-`Decimal32(6)`'s `-2147.483648` to `2147.483647` range, and `Decimal64(6)`
-would double their raw width for model outputs where exact six-decimal storage
-is not worth the size cost. The normalization layer checks each decimal
-column's target range before insertion.
+columns. Vega and theta use `Decimal64(6)` with `T64, ZSTD(12)`: recent 2025
+rows exceeded `Decimal32(6)`'s `-2147.483648` to `2147.483647` range, but a
+full-2025 shadow-table benchmark showed the wider fixed-point representation
+compressed about 140 MiB smaller than `Float32, ZSTD(12)` for those two columns.
+The normalization layer checks each decimal column's target range before
+insertion.
 Prices and `cfadj` remain `Float32`, because
 bid/offer prices already compressed well on tick grids and `cfadj` is not a
 meaningful storage driver. Size figures use
@@ -307,6 +308,10 @@ See `ivydb/IVYDB_CLICKHOUSE_RUN_MANUAL.md` for batch-by-batch config examples.
   load later produced vega values outside the `Decimal32(6)` range after
   15,000,000 inserted rows. Implied volatility, delta, and gamma remain
   `Decimal32(6)`.
+- 2026-06-11: Changed future `opprcd` DDL and normalization for `vega` and
+  `theta` from `Float32` to `Decimal64(6)` with `T64, ZSTD(12)`. A full-2025
+  shadow-table benchmark measured `vega + theta` at 1,462.16 MiB with
+  `Decimal64(6), T64, ZSTD(12)` versus 1,602.56 MiB with `Float32, ZSTD(12)`.
 - 2026-06-10: Added explicit first-WRDS-chunk progress logging and an
   `interrupted` audit status so manual stops can be distinguished from a quiet
   first chunk and cleaned up with `clear-failed`.

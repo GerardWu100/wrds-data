@@ -101,6 +101,8 @@ OPTION_DECIMAL_SCALE = 6
 OPTION_DECIMAL_QUANTUM = Decimal("0.000001")
 OPTION_DECIMAL32_MAX = Decimal("2147.483647")
 OPTION_DECIMAL32_MIN = Decimal("-2147.483648")
+OPTION_DECIMAL64_MAX = Decimal("9223372036854.775807")
+OPTION_DECIMAL64_MIN = Decimal("-9223372036854.775808")
 OPTION_DECIMAL_RULES = (
     DecimalColumnRule(
         "impl_volatility",
@@ -126,8 +128,23 @@ OPTION_DECIMAL_RULES = (
         OPTION_DECIMAL32_MIN,
         OPTION_DECIMAL32_MAX,
     ),
+    DecimalColumnRule(
+        "vega",
+        "Decimal64",
+        OPTION_DECIMAL_SCALE,
+        OPTION_DECIMAL_QUANTUM,
+        OPTION_DECIMAL64_MIN,
+        OPTION_DECIMAL64_MAX,
+    ),
+    DecimalColumnRule(
+        "theta",
+        "Decimal64",
+        OPTION_DECIMAL_SCALE,
+        OPTION_DECIMAL_QUANTUM,
+        OPTION_DECIMAL64_MIN,
+        OPTION_DECIMAL64_MAX,
+    ),
 )
-OPTION_FLOAT32_COLUMNS = ("vega", "theta")
 
 
 def normalize_batch_for_clickhouse(batch: pd.DataFrame, table: TablePlan) -> pd.DataFrame:
@@ -162,8 +179,6 @@ def normalize_batch_for_clickhouse(batch: pd.DataFrame, table: TablePlan) -> pd.
             _validate_nullable_binary_flag(normalized, column_name)
         for rule in OPTION_DECIMAL_RULES:
             _cast_nullable_decimal_scaled(normalized, rule)
-        for column_name in OPTION_FLOAT32_COLUMNS:
-            _cast_nullable_float32(normalized, column_name)
     for column_name in date_columns:
         _cast_nullable_date(normalized, column_name)
     return normalized
@@ -186,8 +201,8 @@ def _cast_nullable_decimal_scaled(dataframe: pd.DataFrame, rule: DecimalColumnRu
     but the values are six-decimal model outputs. Converting through
     ``str(value)`` avoids carrying binary floating-point artifacts such as
     ``0.12345600128173828`` into the fixed-point representation. Vega and theta
-    are not handled here because they use compact ``Float32`` after recent rows
-    exceeded the ``Decimal32(6)`` range.
+    use ``Decimal64(6)`` instead of ``Decimal32(6)`` because recent years exceed
+    the narrower Decimal32 range.
     """
 
     column_name = rule.column_name
@@ -217,32 +232,6 @@ def _cast_nullable_decimal_scaled(dataframe: pd.DataFrame, rule: DecimalColumnRu
         converted_values.append(decimal_value)
 
     dataframe[column_name] = pd.Series(converted_values, index=dataframe.index, dtype="object")
-
-
-def _cast_nullable_float32(dataframe: pd.DataFrame, column_name: str) -> None:
-    """Convert one nullable model-output column to pandas ``Float32``.
-
-    Parameters
-    ----------
-    dataframe:
-        Incoming WRDS chunk. The column is modified in place because the caller
-        already owns a copied DataFrame.
-    column_name:
-        Column whose ClickHouse target type is ``Nullable(Float32)``.
-
-    Notes
-    -----
-    Vega and theta can exceed ``Decimal32(6)`` range in recent option-price
-    rows. ``Float32`` keeps the raw width at four bytes while accepting those
-    larger model-output values. This intentionally gives up exact six-decimal
-    storage for the model columns that proved too wide for fixed point.
-    """
-
-    if column_name not in dataframe.columns:
-        return
-
-    dataframe[column_name] = dataframe[column_name].astype("Float32")
-
 
 def _cast_nullable_date(dataframe: pd.DataFrame, column_name: str) -> None:
     """Convert one nullable WRDS date column to Python ``date`` objects.

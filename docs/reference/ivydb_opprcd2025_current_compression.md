@@ -38,10 +38,11 @@ because it includes table storage overhead beyond the raw compressed column
 streams.
 
 The future loader DDL now uses `T64, ZSTD(12)` for `last_date`, `volume`,
-`open_interest`, `impl_volatility`, `delta`, and `gamma`. This live table was
-left on its previously loaded codecs so it can be replaced by an explicit
-rerun. The byte counts below describe the existing loaded table at the time of
-measurement.
+`open_interest`, `impl_volatility`, `delta`, `gamma`, `vega`, and `theta`.
+For `vega` and `theta`, the future DDL also changes the type from `Float32` to
+`Decimal64(6)`. This live table was left on its previously loaded codecs and
+types so it can be replaced by an explicit rerun. The byte counts below
+describe the existing loaded table at the time of measurement.
 
 ## Current Column Compression
 
@@ -108,6 +109,7 @@ Useful lossless changes found and applied to future DDL:
 | `gamma` | `ZSTD(12)` | `T64, ZSTD(12)` | -18.51% |
 | `last_date` | `DoubleDelta, ZSTD(12)` | `T64, ZSTD(12)` | -50.12% |
 | `volume` | `ZSTD(12)` | `T64, ZSTD(12)` | -21.27% |
+| `vega + theta` | `Float32, ZSTD(12)` | `Decimal64(6), T64, ZSTD(12)` | -140.40 MiB full-year |
 
 Changes tested but not recommended:
 

@@ -422,8 +422,8 @@ class IvydbClickhouseSchemaTests(unittest.TestCase):
         self.assertIn("`impl_volatility` Nullable(Decimal32(6)) CODEC(T64, ZSTD(12))", fake_client.commands[0])
         self.assertIn("`delta` Nullable(Decimal32(6)) CODEC(T64, ZSTD(12))", fake_client.commands[0])
         self.assertIn("`gamma` Nullable(Decimal32(6)) CODEC(T64, ZSTD(12))", fake_client.commands[0])
-        self.assertIn("`vega` Nullable(Float32) CODEC(ZSTD(12))", fake_client.commands[0])
-        self.assertIn("`theta` Nullable(Float32) CODEC(ZSTD(12))", fake_client.commands[0])
+        self.assertIn("`vega` Nullable(Decimal64(6)) CODEC(T64, ZSTD(12))", fake_client.commands[0])
+        self.assertIn("`theta` Nullable(Decimal64(6)) CODEC(T64, ZSTD(12))", fake_client.commands[0])
         self.assertIn("`strike_price` Nullable(Float32) CODEC(ZSTD(12))", fake_client.commands[0])
         self.assertNotIn("forward_price", fake_client.commands[0])
         self.assertNotIn("`root`", fake_client.commands[0])
@@ -1377,10 +1377,11 @@ class IvydbClickhouseLoadTests(unittest.TestCase):
         self.assertEqual(result.loc[0, "delta"], Decimal("-0.500000"))
         self.assertEqual(result.loc[0, "gamma"], Decimal("0.001234"))
 
-    def test_option_normalization_casts_vega_and_theta_to_float32(self) -> None:
-        """Vega and theta should use Float32 because Decimal32 range is too narrow."""
+    def test_option_normalization_converts_vega_and_theta_to_decimal64(self) -> None:
+        """Vega and theta should keep six decimals in the wider Decimal64 range."""
 
-        import numpy as np
+        from decimal import Decimal
+
         import pandas as pd
 
         from ivydb.clickhouse_loader.normalization import normalize_batch_for_clickhouse
@@ -1395,11 +1396,9 @@ class IvydbClickhouseLoadTests(unittest.TestCase):
             self.option_price_plan(),
         )
 
-        self.assertEqual(str(result["vega"].dtype), "Float32")
-        self.assertTrue(np.isclose(result.loc[0, "vega"], 2147.483648))
+        self.assertEqual(result.loc[0, "vega"], Decimal("2147.483648"))
         self.assertTrue(pd.isna(result.loc[1, "vega"]))
-        self.assertEqual(str(result["theta"].dtype), "Float32")
-        self.assertTrue(np.isclose(result.loc[0, "theta"], -2147.483649))
+        self.assertEqual(result.loc[0, "theta"], Decimal("-2147.483649"))
         self.assertTrue(pd.isna(result.loc[1, "theta"]))
 
     def test_option_normalization_rejects_remaining_decimal_greeks_outside_range(self) -> None:

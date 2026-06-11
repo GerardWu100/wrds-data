@@ -10,13 +10,14 @@ from ivydb.clickhouse_loader.config import AppConfig, default_config
 # - The compressed footprint is dominated by impl_volatility and the four
 #   Greeks. Those source values carry six decimal places, so IV, delta, and
 #   gamma are stored as Decimal32(6): fixed-point 4-byte integers scaled by
-#   1,000,000. Vega and theta use Float32 because recent years contain values
-#   outside Decimal32(6)'s +/-2147.483647 range, and Decimal64(6) doubles raw
-#   width for model outputs where exact six-decimal storage is not worth the
-#   size cost. The loader validates each decimal column's target range at the
-#   chunk boundary before insertion. IV, delta, and gamma use T64 before ZSTD
-#   because a 31.1M-row January 2025 shadow-table benchmark cut their compressed
-#   bytes by roughly 15-19% without changing values.
+#   1,000,000. Vega and theta use Decimal64(6) because recent years contain
+#   values outside Decimal32(6)'s +/-2147.483647 range, while a full-2025
+#   shadow-table benchmark showed Decimal64(6) with T64 still compressed about
+#   140 MiB smaller than Float32 with ZSTD for those two columns. The loader
+#   validates each decimal column's target range at the chunk boundary before
+#   insertion. IV, delta, and gamma use T64 before ZSTD because a 31.1M-row
+#   January 2025 shadow-table benchmark cut their compressed bytes by roughly
+#   15-19% without changing values.
 #   Prices and cfadj remain Float32. Historical bid/offer prices often sit on
 #   binary-exact tick grids and compressed worse as Decimal in local tests, while
 #   cfadj is a low-footprint adjustment factor where Decimal friction is not
@@ -59,8 +60,8 @@ CREATE TABLE IF NOT EXISTS `{database}`.`{table}` (
     `impl_volatility` Nullable(Decimal32(6)) CODEC(T64, ZSTD(12)),
     `delta` Nullable(Decimal32(6)) CODEC(T64, ZSTD(12)),
     `gamma` Nullable(Decimal32(6)) CODEC(T64, ZSTD(12)),
-    `vega` Nullable(Float32) CODEC(ZSTD(12)),
-    `theta` Nullable(Float32) CODEC(ZSTD(12)),
+    `vega` Nullable(Decimal64(6)) CODEC(T64, ZSTD(12)),
+    `theta` Nullable(Decimal64(6)) CODEC(T64, ZSTD(12)),
     `optionid` Nullable(UInt64) CODEC(Delta, ZSTD(12)),
     `cfadj` Nullable(Float32) CODEC(ZSTD(12)),
     `am_settlement` Nullable(UInt8) CODEC(ZSTD(12)),

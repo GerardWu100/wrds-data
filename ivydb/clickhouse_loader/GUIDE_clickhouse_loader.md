@@ -81,8 +81,12 @@ for the loader user, which lacks the `system.parts` grant. Integer choices:
 `UInt64`), `am_settlement` is `UInt8` with an explicit 0/1 boundary check,
 `contract_size` is `Int32` because WRDS uses `-99` as an OptionMetrics
 missing-value sentinel, and `optionid` adds a `Delta` codec because it helps
-recent dense years even though it can hurt sparse early years. `secprd` floats
-use `Float32`.
+recent dense years even though it can hurt sparse early years. `symbol` is a
+plain nullable string rather than `LowCardinality`: an eight-date 2025 WRDS
+sample had 12.6M rows and 5.2M distinct symbols, and plain string compressed
+about 22.5% smaller than `LowCardinality`. `expiry_indicator` remains
+`LowCardinality` because it is a small categorical field. `secprd` floats use
+`Float32`.
 Dropping the IV/Greeks columns entirely (≈ 19% of current) remains an
 available research decision but is not done by default.
 
@@ -318,3 +322,7 @@ See `ivydb/IVYDB_CLICKHOUSE_RUN_MANUAL.md` for batch-by-batch config examples.
   `ZSTD(12)` across option-price, underlying-price, and reference/link tables.
   Added `logs/ivydb_year_summary.log` so each completed yearly source appends a
   compact human-readable completion line separate from the JSON audit log.
+- 2026-06-11: Changed `opprcd.symbol` from
+  `LowCardinality(Nullable(String))` to `Nullable(String)` after one-day and
+  eight-date 2025 WRDS samples showed high symbol cardinality and better
+  compression with plain strings. Kept `expiry_indicator` low-cardinality.

@@ -398,7 +398,11 @@ class IvydbClickhouseSchemaTests(unittest.TestCase):
         self.assertIn("`secid` Nullable(UInt32) CODEC(ZSTD(12))", fake_client.commands[0])
         self.assertIn("`date` Nullable(Date32) CODEC(DoubleDelta, ZSTD(12))", fake_client.commands[0])
         self.assertIn(
-            "`symbol` LowCardinality(Nullable(String)) CODEC(ZSTD(12))",
+            "`symbol` Nullable(String) CODEC(ZSTD(12))",
+            fake_client.commands[0],
+        )
+        self.assertIn(
+            "`expiry_indicator` LowCardinality(Nullable(String)) CODEC(ZSTD(12))",
             fake_client.commands[0],
         )
         self.assertIn(

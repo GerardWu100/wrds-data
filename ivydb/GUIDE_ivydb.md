@@ -129,3 +129,6 @@ instead of the older unsigned column.
 - 2026-06-11: Switched new IvyDB ClickHouse tables to `ZSTD(12)` codecs and
   added `logs/ivydb_year_summary.log` for one-line completion summaries after
   each yearly source table finishes.
+- 2026-06-11: Changed new `opprcd.symbol` columns to plain nullable strings
+  after 2025 sample benchmarks showed better compression than
+  `LowCardinality`; `expiry_indicator` remains low-cardinality.

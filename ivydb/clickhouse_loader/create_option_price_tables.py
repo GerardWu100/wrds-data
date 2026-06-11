@@ -39,7 +39,7 @@ OPTION_PRICE_TABLE_SQL = """
 CREATE TABLE IF NOT EXISTS `{database}`.`{table}` (
     `secid` Nullable(UInt32) CODEC(ZSTD(12)),
     `date` Nullable(Date32) CODEC(DoubleDelta, ZSTD(12)),
-    `symbol` LowCardinality(Nullable(String)) CODEC(ZSTD(12)),
+    `symbol` Nullable(String) CODEC(ZSTD(12)),
     `symbol_flag` Nullable(Enum8('0' = 1, '1' = 2)) CODEC(ZSTD(12)),
     `exdate` Nullable(Date32) CODEC(DoubleDelta, ZSTD(12)),
     `last_date` Nullable(Date32) CODEC(DoubleDelta, ZSTD(12)),

@@ -74,10 +74,10 @@ PARTITION BY toYYYYMM(ifNull(`date`, toDate32('1970-01-01')))
 ORDER BY (
     ifNull(`secid`, 0),
     ifNull(`date`, toDate32('1970-01-01')),
-    ifNull(`optionid`, 0),
     ifNull(`exdate`, toDate32('1970-01-01')),
     ifNull(CAST(`cp_flag`, 'Nullable(Int8)'), toInt8(0)),
-    ifNull(`strike_price`, 0)
+    ifNull(`strike_price`, 0),
+    ifNull(`optionid`, 0)
 )
 """
 

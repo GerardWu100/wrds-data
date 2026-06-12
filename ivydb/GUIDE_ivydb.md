@@ -139,3 +139,6 @@ instead of the older unsigned column.
 - 2026-06-12: Changed future `opprcd.open_interest` DDL back to plain
   `ZSTD(12)` after the full 2025 reload showed `T64, ZSTD(12)` was slightly
   larger than the old codec.
+- 2026-06-12: Changed future `opprcd` sort keys to cluster rows by security,
+  quote date, expiration, call/put side, strike, and then option identifier for
+  better compression-oriented option-surface locality.

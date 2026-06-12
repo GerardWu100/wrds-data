@@ -413,6 +413,15 @@ class IvydbClickhouseSchemaTests(unittest.TestCase):
             "ifNull(CAST(`cp_flag`, 'Nullable(Int8)'), toInt8(0))",
             fake_client.commands[0],
         )
+        expected_option_sort_key = """ORDER BY (
+    ifNull(`secid`, 0),
+    ifNull(`date`, toDate32('1970-01-01')),
+    ifNull(`exdate`, toDate32('1970-01-01')),
+    ifNull(CAST(`cp_flag`, 'Nullable(Int8)'), toInt8(0)),
+    ifNull(`strike_price`, 0),
+    ifNull(`optionid`, 0)
+)"""
+        self.assertIn(expected_option_sort_key, fake_client.commands[0])
         self.assertIn("`last_date` Nullable(Date32) CODEC(T64, ZSTD(12))", fake_client.commands[0])
         self.assertIn("`volume` Nullable(UInt32) CODEC(T64, ZSTD(12))", fake_client.commands[0])
         self.assertIn("`open_interest` Nullable(UInt32) CODEC(ZSTD(12))", fake_client.commands[0])

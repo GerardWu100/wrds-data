@@ -99,6 +99,14 @@ about 22.5% smaller than `LowCardinality`. `expiry_indicator` remains
 Dropping the IV/Greeks columns entirely (≈ 19% of current) remains an
 available research decision but is not done by default.
 
+The option-price `ORDER BY` key is chosen for compression-oriented physical
+clustering, not to mirror PostgreSQL's undefined table scan order. Rows are
+sorted by `secid`, `date`, `exdate`, `cp_flag`, `strike_price`, and finally
+`optionid`. This keeps one security's daily option surface together by
+expiration, call/put side, and strike before using the contract identifier as a
+tie-breaker. Existing ClickHouse tables must be recreated and reloaded to adopt
+this sort key; ClickHouse cannot rewrite a `MergeTree` sorting key in place.
+
 Operational resume state is not stored in ClickHouse. The loader writes
 started, completed, interrupted, failed, and cleared source-table events to the
 local JSON-lines file `logs/ivydb_load_audit.jsonl`. Set `resume = true` in
@@ -344,3 +352,7 @@ See `ivydb/IVYDB_CLICKHOUSE_RUN_MANUAL.md` for batch-by-batch config examples.
   `LowCardinality(Nullable(String))` to `Nullable(String)` after one-day and
   eight-date 2025 WRDS samples showed high symbol cardinality and better
   compression with plain strings. Kept `expiry_indicator` low-cardinality.
+- 2026-06-12: Changed future `opprcd` sort keys from
+  `secid, date, optionid, exdate, cp_flag, strike_price` to
+  `secid, date, exdate, cp_flag, strike_price, optionid` so option rows cluster
+  by daily surface before the high-cardinality contract identifier.

@@ -96,6 +96,8 @@ uv run python -m unittest boardex_parquet.test_clickhouse_loader -v
   Python `date` objects before ClickHouse `Date32` inserts.
 - 2026-06-11: Added IvyDB loader coverage for `ZSTD(12)` curated schemas and
   the separate yearly completion summary log.
+- 2026-06-12: Updated IvyDB schema coverage so `opprcd.open_interest` stays on
+  plain `ZSTD(12)` after the full 2025 table showed `T64` was slightly larger.
 - 2026-05-12: Added BoardEx ClickHouse loader coverage for nullable sort-key
   DDL so local Parquet tables can be created reliably in ClickHouse.
 - 2026-05-12: Added BoardEx ClickHouse tests for separate schema creation and

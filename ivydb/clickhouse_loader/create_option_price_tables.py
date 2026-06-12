@@ -23,10 +23,10 @@ from ivydb.clickhouse_loader.config import AppConfig, default_config
 #   cfadj is a low-footprint adjustment factor where Decimal friction is not
 #   worth the negligible savings.
 # - volume / open_interest are per-contract daily counts (observed max ~52k);
-#   UInt32 is the correct width and UInt64 only wasted space. volume and
-#   open_interest use T64 before ZSTD. The open_interest gain was only about 1%
-#   in the January 2025 benchmark, but it is lossless and the user explicitly
-#   chose to keep that small saving.
+#   UInt32 is the correct width and UInt64 only wasted space. volume uses T64
+#   before ZSTD because the January 2025 benchmark showed a meaningful storage
+#   gain. open_interest stays on plain ZSTD because the full 2025 reload showed
+#   T64 was effectively flat and slightly larger.
 # - last_date uses T64 before ZSTD because it halved compressed bytes versus
 #   DoubleDelta in the same January 2025 shadow-table benchmark.
 # - am_settlement is a 0/1 flag, so UInt8 is sufficient.
@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS `{database}`.`{table}` (
     `best_bid` Nullable(Float32) CODEC(ZSTD(12)),
     `best_offer` Nullable(Float32) CODEC(ZSTD(12)),
     `volume` Nullable(UInt32) CODEC(T64, ZSTD(12)),
-    `open_interest` Nullable(UInt32) CODEC(T64, ZSTD(12)),
+    `open_interest` Nullable(UInt32) CODEC(ZSTD(12)),
     `impl_volatility` Nullable(Decimal32(6)) CODEC(T64, ZSTD(12)),
     `delta` Nullable(Decimal32(6)) CODEC(T64, ZSTD(12)),
     `gamma` Nullable(Decimal32(6)) CODEC(T64, ZSTD(12)),

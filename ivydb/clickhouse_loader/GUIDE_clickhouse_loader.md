@@ -82,8 +82,10 @@ meaningful storage driver. Size figures use
 `system.tables.total_bytes`; the per-column `system.columns` view under-reports
 for the loader user, which lacks the `system.parts` grant. Integer choices:
 `volume` and `open_interest` are `UInt32` (per-contract daily counts, not
-`UInt64`) with `T64` before `ZSTD(12)`; the `open_interest` saving was only
-about 1% on the January 2025 benchmark but is kept because it is lossless.
+`UInt64`). `volume` uses `T64` before `ZSTD(12)` because the January 2025
+benchmark showed a useful storage reduction. `open_interest` stays on plain
+`ZSTD(12)` because the full 2025 reload showed `T64` was effectively flat and
+slightly larger.
 `last_date` also uses `T64` because it was much smaller than `DoubleDelta` on
 the same slice. `am_settlement` is `UInt8` with an explicit 0/1 boundary check,
 `contract_size` is `Int32` because WRDS uses `-99` as an OptionMetrics
@@ -331,9 +333,9 @@ See `ivydb/IVYDB_CLICKHOUSE_RUN_MANUAL.md` for batch-by-batch config examples.
   empty string raises `UNKNOWN_ELEMENT_OF_ENUM`.
 - 2026-06-11: Switched future `opprcd` DDL to use lossless
   `T64, ZSTD(12)` codecs for `impl_volatility`, `delta`, `gamma`,
-  `last_date`, `volume`, and `open_interest` after January 2025 shadow-table
-  benchmarks showed storage wins. `open_interest` was kept despite only about a
-  1% gain because the change is lossless and explicitly requested.
+  `last_date`, and `volume` after January 2025 shadow-table benchmarks showed
+  storage wins. `open_interest` remains plain `ZSTD(12)` because the full 2025
+  reload showed `T64` was slightly larger despite a tiny January-slice win.
 - 2026-06-11: Changed curated IvyDB ClickHouse DDL from `ZSTD(6)` to
   `ZSTD(12)` across option-price, underlying-price, and reference/link tables.
   Added `logs/ivydb_year_summary.log` so each completed yearly source appends a

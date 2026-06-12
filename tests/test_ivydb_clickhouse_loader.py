@@ -415,7 +415,7 @@ class IvydbClickhouseSchemaTests(unittest.TestCase):
         )
         self.assertIn("`last_date` Nullable(Date32) CODEC(T64, ZSTD(12))", fake_client.commands[0])
         self.assertIn("`volume` Nullable(UInt32) CODEC(T64, ZSTD(12))", fake_client.commands[0])
-        self.assertIn("`open_interest` Nullable(UInt32) CODEC(T64, ZSTD(12))", fake_client.commands[0])
+        self.assertIn("`open_interest` Nullable(UInt32) CODEC(ZSTD(12))", fake_client.commands[0])
         self.assertIn("`am_settlement` Nullable(UInt8) CODEC(ZSTD(12))", fake_client.commands[0])
         self.assertIn("`contract_size` Nullable(Int32) CODEC(ZSTD(12))", fake_client.commands[0])
         self.assertIn("`optionid` Nullable(UInt64) CODEC(Delta, ZSTD(12))", fake_client.commands[0])

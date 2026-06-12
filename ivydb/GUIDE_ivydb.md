@@ -136,3 +136,6 @@ instead of the older unsigned column.
 - 2026-06-11: Changed new `opprcd.symbol` columns to plain nullable strings
   after 2025 sample benchmarks showed better compression than
   `LowCardinality`; `expiry_indicator` remains low-cardinality.
+- 2026-06-12: Changed future `opprcd.open_interest` DDL back to plain
+  `ZSTD(12)` after the full 2025 reload showed `T64, ZSTD(12)` was slightly
+  larger than the old codec.

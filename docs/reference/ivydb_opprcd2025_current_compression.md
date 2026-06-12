@@ -38,7 +38,9 @@ because it includes table storage overhead beyond the raw compressed column
 streams.
 
 The future loader DDL now uses `T64, ZSTD(12)` for `last_date`, `volume`,
-`open_interest`, `impl_volatility`, `delta`, `gamma`, `vega`, and `theta`.
+`impl_volatility`, `delta`, `gamma`, `vega`, and `theta`.
+`open_interest` remains on plain `ZSTD(12)` because the full 2025 reload showed
+`T64, ZSTD(12)` was effectively flat and slightly larger.
 For `vega` and `theta`, the future DDL also changes the type from `Float32` to
 `Decimal64(6)`. This live table was left on its previously loaded codecs and
 types so it can be replaced by an explicit rerun. The byte counts below

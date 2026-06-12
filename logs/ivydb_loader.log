@@ -25484,3 +25484,6 @@ ValueError: vega must fit Decimal32(6) range -2147.483648 to 2147.483647
 2026-06-12 04:21:09 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Inserting ClickHouse batch 1 for optionm_all.opprcd2025 with 45,680 row(s)
 2026-06-12 04:21:09 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Loaded 264,945,680 rows from optionm_all.opprcd2025
 2026-06-12 04:21:10 UTC INFO ivydb.clickhouse_loader.load_to_clickhouse: Completed optionm_all.opprcd2025 -> opprcd2025 with 264,945,680 row(s)
+2026-06-12 13:59:44 UTC INFO ivydb.clickhouse_loader.cli: Writing run log to /home/ai4000/projects/one-time-projects/wrds-data/logs/ivydb_loader.log
+2026-06-12 13:59:49 UTC INFO ivydb.clickhouse_loader.cli: Writing run log to /home/ai4000/projects/one-time-projects/wrds-data/logs/ivydb_loader.log
+2026-06-12 14:00:01 UTC INFO ivydb.clickhouse_loader.cli: Writing run log to /home/ai4000/projects/one-time-projects/wrds-data/logs/ivydb_loader.log

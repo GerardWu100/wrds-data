@@ -78,6 +78,25 @@ expiration, call/put side, and strike before the high-cardinality option
 identifier. It is the strongest current candidate for compression, but it still
 needs a shadow-table benchmark before treating it as proven best.
 
+### January 2025 Sort-Key Benchmark
+
+After this snapshot was written, four temporary January 2025 shadow tables were
+created from the same `ivydb.opprcd2025` rows to test sort-key compression. Each
+table used the same columns, codecs, and 31,062,326 January rows. The temporary
+tables were dropped after measurement.
+
+| Rank | Tested sort key | Column compressed size | B/row | Ratio | Change vs current |
+|---:|---|---:|---:|---:|---:|
+| 1 | `secid, date, exdate, cp_flag, strike_price, optionid` | 489.12 MiB | 16.5114 | 7.9874x | -2.65% |
+| 2 | `secid, date, cp_flag, exdate, strike_price, optionid` | 491.77 MiB | 16.6009 | 7.9443x | -2.12% |
+| 3 | `secid, date, optionid, exdate, cp_flag, strike_price` | 502.44 MiB | 16.9608 | 7.7757x | baseline |
+| 4 | `secid, date, strike_price, exdate, cp_flag, optionid` | 525.33 MiB | 17.7336 | 7.4369x | +4.56% |
+
+The result supports the future sort-key change: putting `exdate`, `cp_flag`,
+and `strike_price` before `optionid` improved January compressed column storage
+by 13.32 MiB versus the current live order. This is a slice-level benchmark,
+not a full-year proof, but it directly tests the table's real data.
+
 ## Column Compression
 
 | # | Column | Type | Codec | Compressed MiB | Uncompressed MiB | Ratio | B/row | Share |

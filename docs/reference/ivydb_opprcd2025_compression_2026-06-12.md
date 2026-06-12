@@ -44,7 +44,24 @@ the full 2025 reload showed `T64, ZSTD(12)` was slightly larger. The displayed
 column bytes can still reflect existing physical parts until ClickHouse merges
 or rewrites those parts.
 
-The live table still uses the old physical sorting key:
+## Ranking / Sorting Key
+
+In ClickHouse, the table ranking is the `ORDER BY` sorting key. This controls
+the physical row order inside each monthly `date` partition and therefore can
+affect compression.
+
+Current live `ivydb.opprcd2025` ranking:
+
+| Rank | Column or expression | Meaning |
+|---:|---|---|
+| 1 | `secid` | OptionMetrics security identifier |
+| 2 | `date` | Quote or observation date |
+| 3 | `optionid` | Option contract identifier |
+| 4 | `exdate` | Option expiration date |
+| 5 | `cp_flag` | Call or put flag |
+| 6 | `strike_price` | Strike price multiplied by 1,000 in the WRDS source |
+
+Current live sorting key:
 
 ```text
 secid, date, optionid, exdate, cp_flag, strike_price
@@ -58,7 +75,8 @@ secid, date, exdate, cp_flag, strike_price, optionid
 
 That future order keeps one security's daily option surface together by
 expiration, call/put side, and strike before the high-cardinality option
-identifier.
+identifier. It is the strongest current candidate for compression, but it still
+needs a shadow-table benchmark before treating it as proven best.
 
 ## Column Compression
 

@@ -13,8 +13,11 @@ that explain how to use WRDS datasets in this repository.
   WRDS dataset descriptions and data dictionary URLs.
 - `boardex_osint_data_plan.md`: Planning note for BoardEx and public-source
   data work.
-- `reference/ivydb_opprcd2025_current_compression.md`: Current live ClickHouse
-  size, codec, and per-column compression measurements for `ivydb.opprcd2025`.
+- `reference/ivydb_opprcd2025_compression_2026-06-11.md`: June 11 ClickHouse
+  size, codec, and per-column compression snapshot for `ivydb.opprcd2025`.
+- `reference/ivydb_opprcd2025_compression_2026-06-12.md`: June 12 ClickHouse
+  size, codec, and per-column compression snapshot for `ivydb.opprcd2025`,
+  including the current live codec state and future sort-key note.
 
 ## Connections
 

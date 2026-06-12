@@ -1,8 +1,8 @@
-# IvyDB `opprcd2025` Current ClickHouse Compression
+# IvyDB `opprcd2025` ClickHouse Compression Snapshot: 2026-06-11
 
-This note records the current live ClickHouse storage layout for
+This note records the June 11, 2026 ClickHouse storage layout for
 `ivydb.opprcd2025` after the 2025 OptionMetrics IvyDB US option-price table was
-re-downloaded with the current compression settings.
+re-downloaded with the compression settings active at that time.
 
 Measurement date: 2026-06-11
 
@@ -37,16 +37,17 @@ Higher is better for storage.
 because it includes table storage overhead beyond the raw compressed column
 streams.
 
-The future loader DDL now uses `T64, ZSTD(12)` for `last_date`, `volume`,
-`impl_volatility`, `delta`, `gamma`, `vega`, and `theta`.
-`open_interest` remains on plain `ZSTD(12)` because the full 2025 reload showed
-`T64, ZSTD(12)` was effectively flat and slightly larger.
+At the time of this snapshot, future loader DDL was expected to use
+`T64, ZSTD(12)` for `last_date`, `volume`, `open_interest`,
+`impl_volatility`, `delta`, `gamma`, `vega`, and `theta`. A later June 12
+change moved `open_interest` back to plain `ZSTD(12)` after the full 2025
+reload showed `T64, ZSTD(12)` was slightly larger.
 For `vega` and `theta`, the future DDL also changes the type from `Float32` to
 `Decimal64(6)`. This live table was left on its previously loaded codecs and
 types so it can be replaced by an explicit rerun. The byte counts below
 describe the existing loaded table at the time of measurement.
 
-## Current Column Compression
+## Column Compression
 
 | # | Column | Type | Codec | Compressed MiB | Uncompressed MiB | Ratio | B/row | Share |
 |---:|---|---|---|---:|---:|---:|---:|---:|
